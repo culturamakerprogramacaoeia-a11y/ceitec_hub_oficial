@@ -1,4 +1,4 @@
-// CEITEC HUB - Interatividade Premium gege
+// CEITEC HUB - Interatividade Premium gege1
 
 document.addEventListener('DOMContentLoaded', () => {
     initMenu();
