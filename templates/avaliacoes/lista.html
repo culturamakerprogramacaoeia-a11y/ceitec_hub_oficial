@@ -54,6 +54,10 @@
 
                     <a href="{{ url_for('ver_resultados', prova_id=prova.id) }}" class="btn btn-primary"
                         style="padding: 5px 12px; font-size: 0.8rem;">📊 Resultados</a>
+
+                    <a href="{{ url_for('correcao_manual', prova_id=prova.id) }}" class="btn glass"
+                        style="padding: 5px 12px; font-size: 0.8rem; border-color: #38bdf8; color: #38bdf8;">📝 Lançar
+                        Manual</a>
                 </td>
             </tr>
             {% else %}

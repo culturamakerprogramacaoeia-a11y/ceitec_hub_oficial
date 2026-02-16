@@ -245,6 +245,34 @@ def correcao_automatica():
     provas = db.avaliacoes.listar_provas(professor_id=session['user_id'])
     return render_template('avaliacoes/correcao.html', provas=provas)
 
+@app.route('/dashboard/correcao/manual/<int:prova_id>', methods=['GET', 'POST'])
+@login_required
+@professor_required
+def correcao_manual(prova_id):
+    prova = db.avaliacoes.get_prova(prova_id)
+    if not prova:
+        flash('Prova não encontrada.', 'danger')
+        return redirect(url_for('listar_provas'))
+
+    if request.method == 'POST':
+        nome_aluno = request.form.get('nome_aluno', 'Aluno Manual')
+        respostas = {}
+        for i in range(1, prova['num_questoes'] + 1):
+            respostas[str(i)] = request.form.get(f'q{i}')
+        
+        # Calcular e Salvar (Mesma lógica da foto, mas sem imagem)
+        analise = db.avaliacoes.calcular_nota(prova_id, respostas)
+        resp_id = db.avaliacoes.salvar_resposta_aluno(
+            prova_id, respostas, nome_ocr=nome_aluno, imagem_path='manual_entry.png'
+        )
+        db.avaliacoes.atualizar_nota_resposta(resp_id, analise['nota_final'], analise['acertos'])
+        db.avaliacoes.salvar_desempenho_habilidades(resp_id, analise['desempenho_habilidades'])
+        
+        flash(f'Gabarito de {nome_aluno} lançado com sucesso!', 'success')
+        return redirect(url_for('ver_resultados', prova_id=prova_id))
+
+    return render_template('avaliacoes/manual.html', prova=prova)
+
 @app.route('/dashboard/resultados/<int:prova_id>')
 @login_required
 def ver_resultados(prova_id):
