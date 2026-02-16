@@ -367,3 +367,128 @@ td {
     font-size: 0.8rem;
     border: 1px solid rgba(6, 182, 212, 0.2);
 }
+
+/* ============================================
+   Responsividade Mobile (Adicionado)
+   ============================================ */
+@media (max-width: 768px) {
+    .navbar {
+        padding: 1rem 20px;
+        position: relative;
+    }
+
+    .nav-toggle {
+        display: block !important;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        color: white;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 1.2rem;
+        cursor: pointer;
+    }
+
+    .nav-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        flex-direction: column;
+        background: #0f172a;
+        padding: 20px;
+        gap: 5px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: none;
+        z-index: 2000;
+        align-items: flex-start;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .nav-menu.active {
+        display: flex;
+    }
+
+    .nav-menu li {
+        width: 100%;
+    }
+
+    .nav-menu a {
+        display: block;
+        padding: 12px 15px;
+        width: 100%;
+        font-size: 1rem;
+        border-radius: 8px;
+    }
+
+    .nav-menu a:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Dropdown no Mobile */
+    .dropdown-content {
+        position: static;
+        display: none;
+        width: 100%;
+        min-width: unset;
+        background: rgba(255, 255, 255, 0.03) !important;
+        margin-top: 5px;
+        box-shadow: none;
+        border: none;
+        border-left: 3px solid var(--primary);
+        padding-left: 10px;
+    }
+
+    .dropdown.active .dropdown-content {
+        display: block;
+    }
+
+    .dropdown::after {
+        display: none !important;
+    }
+
+    .modules-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .card {
+        padding: 1.5rem;
+    }
+
+    .score-highlight {
+        font-size: 2.5rem;
+    }
+
+    .table-container {
+        border-radius: 12px;
+        margin: 1.5rem -15px;
+        width: calc(100% + 30px);
+    }
+
+    th,
+    td {
+        padding: 12px 10px;
+        font-size: 0.82rem;
+    }
+
+    .auth-card {
+        padding: 2rem 1.5rem !important;
+        width: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    .form-row {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    .btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+.nav-toggle {
+    display: none;
+}

@@ -14,6 +14,20 @@ function initMenu() {
             menu.classList.toggle('active');
         });
     }
+
+    // Suporte para dropdown no mobile
+    const dropdowns = document.querySelectorAll('.dropdown');
+    dropdowns.forEach(dd => {
+        const btn = dd.querySelector('.dropbtn');
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768) {
+                    e.preventDefault();
+                    dd.classList.toggle('active');
+                }
+            });
+        }
+    });
 }
 
 function initAlerts() {
