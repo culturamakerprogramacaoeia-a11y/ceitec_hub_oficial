@@ -87,22 +87,46 @@ class PDFGenerator:
         filename = f"prova_caderno_{prova_id}.pdf"
         filepath = os.path.join(self.output_dir, filename)
         
-        doc = SimpleDocTemplate(filepath, pagesize=A4, topMargin=20*mm)
+        doc = SimpleDocTemplate(filepath, pagesize=A4, topMargin=15*mm, leftMargin=20*mm, rightMargin=20*mm)
         elements = []
 
-        # Título da Prova
-        elements.append(Paragraph(f"<b>{nome_prova.upper()}</b>", self.styles['Title']))
-        elements.append(Paragraph(f"Turma: {turma} | Professor: {professor}", self.styles['Normal']))
-        elements.append(Spacer(1, 10*mm))
+        # Cabeçalho Escolar Adicionado
+        header_table_data = [
+            [Paragraph("<b>CEITEC HUB - Plataforma Educacional</b>", self.styles['Heading2']), ""],
+            [f"Avaliação: {nome_prova.upper()}", f"Data: ____/____/2024"],
+            [f"Professor(a): {professor}", f"Turma: {turma}"],
+            [Paragraph("<b>ALUNO(A): __________________________________________________________________</b>", self.styles['Normal']), ""]
+        ]
+        
+        t_header = Table(header_table_data, colWidths=[120*mm, 50*mm])
+        t_header.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-3), 0.5, colors.grey),
+            ('SPAN', (0,0), (1,0)),
+            ('SPAN', (0,3), (1,3)),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+            ('BOTTOMPADDING', (0,3), (1,3), 10),
+            ('TOPPADDING', (0,0), (1,0), 5),
+        ]))
+        elements.append(t_header)
+        elements.append(Spacer(1, 15*mm))
+        
+        # Estilo personalizado para questões
+        qst_style = ParagraphStyle(
+            'QStyle',
+            parent=self.styles['Normal'],
+            fontSize=11,
+            leading=14,
+            alignment=0, # Justified
+            spaceAfter=10
+        )
         
         for q in questoes:
-            # Enunciado
+            # Enunciado formatado
             texto = q.get('texto') or "Questão sem enunciado."
-            p_text = f"<b>Questão {q['numero']}:</b> {texto}"
-            elements.append(Paragraph(p_text, self.styles['Normal']))
-            elements.append(Spacer(1, 3*mm))
+            p_text = f"<b>{q['numero']}.</b> {texto}"
+            elements.append(Paragraph(p_text, qst_style))
             
-            # Alternativas
+            # Alternativas com recuo
             alts = q.get('alternativas', [])
             if isinstance(alts, str):
                 import json
@@ -112,7 +136,7 @@ class PDFGenerator:
             labels = ["A", "B", "C", "D", "E"]
             for i, alt_text in enumerate(alts):
                 if i < len(labels):
-                    elements.append(Paragraph(f"({labels[i]}) {alt_text}", self.styles['Normal']))
+                    elements.append(Paragraph(f"&nbsp;&nbsp;&nbsp;&nbsp;({labels[i]}) {alt_text}", self.styles['Normal']))
             
             elements.append(Spacer(1, 8*mm))
 

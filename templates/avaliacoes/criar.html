@@ -147,9 +147,40 @@
     function gerarComIA() {
         const btn = event.target;
         btn.disabled = true;
-        btn.textContent = "🤖 IA Processando Habilidades BNCC...";
+        btn.innerHTML = '🤖 IA Gerando Conteúdo...';
 
-        // Simulação de geração via IA
+        const templates = {
+            'EF09CI03': [
+                {
+                    txt: "No contexto do pensamento computacional, qual é a principal finalidade de um ALGORITMO em um sistema de automação industrial?",
+                    alts: ["Definir uma sequência lógica de passos para resolver um problema", "Aumentar apenas a velocidade física dos motores", "Substituir todos os operadores humanos sem critérios", "Reduzir o consumo de energia apenas desligando o sistema"]
+                },
+                {
+                    txt: "Ao criar um fluxograma para um braço robótico no CEITEC HUB, o símbolo de 'Losango' representa qual ação?",
+                    alts: ["Uma tomada de decisão baseada em uma condição", "O início ou fim de todo o processo", "Uma entrada de dados via sensor ultrassônico", "Um comando de saída para mover o servomotor"]
+                }
+            ],
+            'EF09CI04': [
+                {
+                    txt: "A LÓGICA DE PROGRAMAÇÃO permite que robôs tomem decisões. Qual estrutura é usada para repetir uma tarefa várias vezes?",
+                    alts: ["Estrutura de Repetição (Looping)", "Estrutura de Decisão Símples (IF)", "Variável Global Inteira", "Comentário de código em linha"]
+                }
+            ],
+            'EF09CI05': [
+                {
+                    txt: "Sobre a AUTOMAÇÃO e Robótica, qual é o papel fundamental dos Sensores em um sistema de malha fechada?",
+                    alts: ["Fornecer feedback do ambiente para o controlador", "Garantir que a energia elétrica nunca acabe", "Armazenar o código-fonte permanentemente", "Exibir mensagens de erro no display LCD"]
+                }
+            ],
+            'GERAL': [
+                {
+                    txt: "O CEITEC HUB utiliza tecnologia de ponta para educação. Qual das opções abaixo descreve melhor o conceito de IoT (Internet das Coisas)?",
+                    alts: ["Conexão de objetos físicos à internet para troca de dados", "Uso de cabos de rede mais rápidos apenas", "Criação de sites para visualização de PDF", "Instalação de aplicativos em computadores antigos"]
+                }
+            ]
+        };
+
+        // Simulação de delay de processamento
         setTimeout(() => {
             const n = parseInt(selectQ.value);
             for (let i = 1; i <= n; i++) {
@@ -157,24 +188,22 @@
                 const hab = document.getElementsByName(`h${i}`)[0].value;
                 const gab = document.getElementsByName(`q${i}`)[0];
 
-                if (hab === 'EF09CI03') {
-                    areaQuestao.value = `Tendo em vista o conceito de algoritmos, qual é a função primordial de uma estrutura de repetição (loop) em um fluxograma de automação?`;
-                } else {
-                    areaQuestao.value = `Questão gerada automaticamente baseada na habilidade ${hab}. Considere os padrões tecnológicos do CEITEC HUB.`;
-                }
+                const pool = templates[hab] || templates['GERAL'];
+                const item = pool[Math.floor(Math.random() * pool.length)];
 
-                document.getElementsByName(`alt_${i}_A`)[0].value = "Resposta correta gerada pela IA";
-                document.getElementsByName(`alt_${i}_B`)[0].value = "Alternativa incorreta baseada em distrações comuns";
-                document.getElementsByName(`alt_${i}_C`)[0].value = "Conceito divergente do tema central";
-                document.getElementsByName(`alt_${i}_D`)[0].value = "Nenhuma das anteriores";
+                areaQuestao.value = item.txt;
+                document.getElementsByName(`alt_${i}_A`)[0].value = item.alts[0];
+                document.getElementsByName(`alt_${i}_B`)[0].value = item.alts[1];
+                document.getElementsByName(`alt_${i}_C`)[0].value = item.alts[2];
+                document.getElementsByName(`alt_${i}_D`)[0].value = item.alts[3];
 
-                gab.value = "A";
+                gab.value = "A"; // Por padrão, a primeira é a correta no mock
             }
             btn.disabled = false;
-            btn.innerHTML = "✨ Questões Geradas! (Você pode revisar abaixo)";
+            btn.innerHTML = "✨ Questões Geradas! (Revisão Pronta)";
             btn.style.borderColor = "var(--success)";
             btn.style.color = "var(--success)";
-        }, 2000);
+        }, 1500);
     }
 
     toggleModo();
