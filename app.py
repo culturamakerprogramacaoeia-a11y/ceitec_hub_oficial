@@ -357,6 +357,7 @@ def excluir_turma(turma_id):
     db.avaliacoes.excluir_turma(turma_id, session['user_id'])
     flash('Turma removida com sucesso!', 'success')
     return redirect(url_for('listar_turmas'))
+@app.route('/dashboard/aluno/add', methods=['POST'])
 @login_required
 @professor_required
 def cadastrar_aluno():
