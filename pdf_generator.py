@@ -93,7 +93,7 @@ class PDFGenerator:
         # Cabeçalho Escolar Adicionado
         header_table_data = [
             [Paragraph("<b>CEITEC HUB - Plataforma Educacional</b>", self.styles['Heading2']), ""],
-            [f"Avaliação: {nome_prova.upper()}", f"Data: ____/____/2024"],
+            [f"Avaliação: {nome_prova.upper()}", f"Data: ____/____/2026"],
             [f"Professor(a): {professor}", f"Turma: {turma}"],
             [Paragraph("<b>ALUNO(A): __________________________________________________________________</b>", self.styles['Normal']), ""]
         ]

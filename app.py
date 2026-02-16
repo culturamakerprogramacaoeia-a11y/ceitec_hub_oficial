@@ -18,7 +18,10 @@ from pdf_generator import PDFGenerator
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'ceitec-hub-secret-key-2024')
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
+
+# Configuração de Caminhos Absolutos para PythonAnywhere
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app.config['UPLOAD_FOLDER'] = os.path.join(BASE_DIR, 'static', 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
 
 # Filtro para converter JSON em lista no HTML
@@ -33,7 +36,7 @@ db = Database()
 omr = OMREngine()
 qr = QREngine()
 ocr = OCREngine()
-pdf = PDFGenerator()
+pdf = PDFGenerator(output_dir=os.path.join(app.config['UPLOAD_FOLDER'], 'provas'))
 
 # ==================== DECORATORS ====================
 
