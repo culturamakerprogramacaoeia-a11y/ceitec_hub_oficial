@@ -4,27 +4,60 @@
 
 {% block content %}
 <div class="header-action">
-    <h1>👥 Gestão de Turmas</h1>
-    <p>Visualize o desempenho geral e a lista de alunos por turma.</p>
+    <div>
+        <h1>👥 Gestão de Turmas</h1>
+        <p>Visualize o desempenho geral e a lista de alunos por turma.</p>
+    </div>
+    <button class="btn btn-primary" onclick="document.getElementById('modalTurma').style.display='flex'">+ Nova
+        Turma</button>
+</div>
+
+<!-- Modal Nova Turma -->
+<div id="modalTurma" class="glass-morph"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; justify-content: center; align-items: center; background: rgba(0,0,0,0.7);">
+    <div class="card glass-morph" style="width: 400px; padding: 2rem;">
+        <h3>Nova Turma</h3>
+        <form action="{{ url_for('cadastrar_turma') }}" method="POST">
+            <div style="margin-bottom: 1.5rem;">
+                <label class="label">Nome da Turma (Ex: 9º Ano A)</label>
+                <input type="text" name="nome" class="btn glass" style="width: 100%; text-align: left;"
+                    placeholder="Digite o nome..." required>
+            </div>
+            <div style="margin-bottom: 1.5rem;">
+                <label class="label">Série/Ano</label>
+                <input type="text" name="serie" class="btn glass" style="width: 100%; text-align: left;"
+                    placeholder="Ex: Fundamental II">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn glass"
+                    onclick="document.getElementById('modalTurma').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Criar Turma</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <div class="modules-grid" style="margin-top: 2rem;">
     {% for turma in turmas %}
     <div class="card glass-morph module-card" style="border-top: 4px solid var(--primary);">
         <div class="module-icon" style="background: var(--primary); color: white;">🏫</div>
-        <h3>Turma: {{ turma }}</h3>
-        <p>Acompanhe o progresso dos alunos e as médias das avaliações.</p>
-        <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
-            <a href="{{ url_for('ver_turma', turma_nome=turma) }}" class="btn btn-primary">Ver Detalhes</a>
+        <h3>{{ turma.nome }}</h3>
+        <p>{{ turma.total_alunos }} Alunos Cadastrados</p>
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <a href="{{ url_for('excluir_turma', turma_id=turma.id) }}" class="btn glass"
+                style="color: var(--danger); padding: 5px 10px; font-size: 0.8rem;"
+                onclick="return confirm('Tem certeza que deseja excluir esta turma e todos os seus alunos cadastrados?')">🗑️</a>
+            <a href="{{ url_for('ver_turma', turma_nome=turma.nome) }}" class="btn btn-primary">Ver Turma</a>
         </div>
     </div>
     {% else %}
     <div class="card glass-morph" style="grid-column: 1 / -1; text-align: center; padding: 4rem;">
         <div style="font-size: 4rem; margin-bottom: 2rem;">📭</div>
         <h2>Nenhuma turma identificada</h2>
-        <p>As turmas aparecem aqui automaticamente após você criar ou corrigir a primeira prova.</p>
-        <a href="{{ url_for('criar_prova') }}" class="btn btn-primary" style="margin-top: 1.5rem;">Criar Minha Primeira
-            Prova</a>
+        <p>As turmas aparecem aqui automaticamente após você criar ou corrigir a primeira prova, ou você pode criá-las
+            manualmente.</p>
+        <button class="btn btn-primary" style="margin-top: 1.5rem;"
+            onclick="document.getElementById('modalTurma').style.display='flex'">Criar Minha Primeira Turma</button>
     </div>
     {% endfor %}
 </div>

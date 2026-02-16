@@ -403,6 +403,31 @@ class AvaliacaoModels:
                 FOREIGN KEY (resposta_id) REFERENCES respostas_alunos(id) ON DELETE CASCADE
             )
         ''')
+
+        # Tabela de turmas cadastradas (Gestão Pro)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS turmas_cadastradas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                professor_id INTEGER NOT NULL,
+                serie TEXT,
+                data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (professor_id) REFERENCES usuarios(id)
+            )
+        ''')
+
+        # Tabela de alunos cadastrados (Gestão Pro)
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS alunos_cadastrados (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nome TEXT NOT NULL,
+                turma_id INTEGER NOT NULL,
+                professor_id INTEGER NOT NULL,
+                data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (turma_id) REFERENCES turmas_cadastradas(id) ON DELETE CASCADE,
+                FOREIGN KEY (professor_id) REFERENCES usuarios(id)
+            )
+        ''')
         
         conn.commit()
         conn.close()
@@ -653,10 +678,71 @@ class AvaliacaoModels:
 
     # ==================== GESTÃO DE TURMAS E ALUNOS ====================
 
-    def get_turmas_professor(self, professor_id):
+    def cadastrar_turma(self, nome, professor_id, serie=None):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        cursor.execute('SELECT DISTINCT turma FROM provas WHERE professor_id = ?', (professor_id,))
+        cursor.execute('INSERT INTO turmas_cadastradas (nome, professor_id, serie) VALUES (?, ?, ?)', 
+                       (nome, professor_id, serie))
+        turma_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return turma_id
+
+    def cadastrar_aluno(self, nome, turma_id, professor_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO alunos_cadastrados (nome, turma_id, professor_id) VALUES (?, ?, ?)', 
+                       (nome, turma_id, professor_id))
+        conn.commit()
+        conn.close()
+        return True
+
+    def get_turmas_completas(self, professor_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT t.*, 
+                   (SELECT COUNT(*) FROM alunos_cadastrados WHERE turma_id = t.id) as total_alunos
+            FROM turmas_cadastradas t
+            WHERE t.professor_id = ?
+            ORDER BY t.nome ASC
+        ''', (professor_id,))
+        turmas = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return turmas
+
+    def get_turma_por_id(self, turma_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM turmas_cadastradas WHERE id = ?', (turma_id,))
+        res = cursor.fetchone()
+        conn.close()
+        return dict(res) if res else None
+
+    def get_alunos_por_turma_id(self, turma_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM alunos_cadastrados WHERE turma_id = ? ORDER BY nome ASC', (turma_id,))
+        alunos = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return alunos
+
+    def excluir_turma(self, turma_id, professor_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM turmas_cadastradas WHERE id = ? AND professor_id = ?', (turma_id, professor_id))
+        conn.commit()
+        conn.close()
+
+    def get_turmas_professor(self, professor_id):
+        # Unificando: Pega as cadastradas e também as que existem em provas (compatibilidade)
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('''
+            SELECT DISTINCT nome as turma FROM turmas_cadastradas WHERE professor_id = ?
+            UNION
+            SELECT DISTINCT turma FROM provas WHERE professor_id = ?
+        ''', (professor_id, professor_id))
         turmas = [row['turma'] for row in cursor.fetchall()]
         conn.close()
         return turmas
@@ -664,14 +750,16 @@ class AvaliacaoModels:
     def get_alunos_turma(self, professor_id, turma):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        # Aqui buscamos alunos que já fizeram alguma prova dessa turma ou estão cadastrados
+        # Busca unificada
         cursor.execute('''
-            SELECT DISTINCT nome_ocr as nome, 'Desconhecido' as serie
+            SELECT DISTINCT nome, 'Cadastrado' as origem
+            FROM alunos_cadastrados 
+            WHERE turma_id IN (SELECT id FROM turmas_cadastradas WHERE nome = ? AND professor_id = ?)
+            UNION
+            SELECT DISTINCT nome_ocr as nome, 'Prova' as origem
             FROM respostas_alunos 
             WHERE prova_id IN (SELECT id FROM provas WHERE professor_id = ? AND turma = ?)
-            UNION
-            SELECT nome, serie FROM usuarios WHERE escola IN (SELECT escola FROM usuarios WHERE id = ?) AND tipo = 'aluno'
-        ''', (professor_id, turma, professor_id))
+        ''', (turma, professor_id, professor_id, turma))
         alunos = [dict(row) for row in cursor.fetchall()]
         conn.close()
         return alunos

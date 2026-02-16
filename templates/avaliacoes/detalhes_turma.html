@@ -9,11 +9,53 @@
             <a href="{{ url_for('listar_turmas') }}" style="text-decoration: none; font-size: 1.5rem;">⬅️</a>
             Turma: {{ turma }}
         </h1>
-        <p>Gestão de alunos e histórico de desempenho da turma.</p>
+        <p>Gestão de alunos e histórico de desempenho.</p>
     </div>
     <div style="display: flex; gap: 10px;">
-        <button class="btn glass" onclick="alert('Funcionalidade de Importação em breve!')">📥 Importar Alunos</button>
-        <button class="btn btn-primary" onclick="alert('Funcionalidade de Cadastro em breve!')">+ Novo Aluno</button>
+        <button class="btn glass" onclick="document.getElementById('modalImportar').style.display='flex'">📥 Importar
+            Alunos</button>
+        <button class="btn btn-primary" onclick="document.getElementById('modalAluno').style.display='flex'">+ Novo
+            Aluno</button>
+    </div>
+</div>
+
+<!-- Modal Novo Aluno -->
+<div id="modalAluno" class="glass-morph"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; justify-content: center; align-items: center; background: rgba(0,0,0,0.7);">
+    <div class="card glass-morph" style="width: 400px; padding: 2rem;">
+        <h3>Novo Aluno</h3>
+        <form action="{{ url_for('cadastrar_aluno') }}" method="POST">
+            <input type="hidden" name="turma_nome" value="{{ turma }}">
+            <div style="margin-bottom: 1.5rem;">
+                <label class="label">Nome Completo</label>
+                <input type="text" name="nome" class="btn glass" style="width: 100%; text-align: left;" required>
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn glass"
+                    onclick="document.getElementById('modalAluno').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Adicionar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Importar -->
+<div id="modalImportar" class="glass-morph"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; justify-content: center; align-items: center; background: rgba(0,0,0,0.7);">
+    <div class="card glass-morph" style="width: 500px; padding: 2rem;">
+        <h3>Importar Lista de Alunos</h3>
+        <p class="label">Cole os nomes dos alunos (um por linha):</p>
+        <form action="{{ url_for('importar_alunos') }}" method="POST">
+            <input type="hidden" name="turma_nome" value="{{ turma }}">
+            <textarea name="alunos_lista" class="btn glass"
+                style="width: 100%; height: 200px; text-align: left; margin-bottom: 1.5rem;"
+                placeholder="Ana Silva&#10;Bruno Lima..."></textarea>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn glass"
+                    onclick="document.getElementById('modalImportar').style.display='none'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Importar Agora</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -24,19 +66,12 @@
     </div>
     <div class="card glass-morph">
         <p class="label">Média Geral da Turma</p>
-        {% set total_notas = [] %}
-        {% for p in provas %}
-        {% if p.total_correcoes > 0 %}
-        {% set _ = total_notas.append(p.id) %}
-        {% endif %}
-        {% endfor %}
         <h2 class="score-highlight" style="color: var(--accent);">{{ "%.1f"|format(6.5) }}</h2>
         <p style="font-size: 0.8rem; color: var(--text-muted);">Baseado em {{ provas|length }} avaliações</p>
     </div>
 </div>
 
 <div class="modules-grid" style="margin-top: 2rem;">
-    <!-- Lista de Alunos -->
     <div class="card glass-morph" style="grid-column: span 2;">
         <h3>👥 Lista de Alunos</h3>
         <div class="table-container">
@@ -44,23 +79,23 @@
                 <thead>
                     <tr>
                         <th>Nome do Aluno</th>
-                        <th>Série</th>
-                        <th>Última Nota</th>
+                        <th>Origem</th>
                         <th>Status</th>
-                        <th>Ações</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for aluno in alunos %}
                     <tr>
                         <td><b>{{ aluno.nome }}</b></td>
-                        <td>{{ aluno.serie }}</td>
-                        <td><span style="font-weight: bold; color: var(--success);">8.5</span></td>
+                        <td><span class="bncc-tag" style="background: rgba(99, 102, 241, 0.1);">{{ aluno.origem
+                                }}</span></td>
                         <td><span class="bncc-tag"
                                 style="background: rgba(16, 185, 129, 0.1); color: #10b981;">ATIVO</span></td>
-                        <td>
-                            <button class="btn glass" style="font-size: 0.7rem;">📊 Ficha</button>
-                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" style="text-align: center; padding: 2rem; color: var(--text-muted);">Nenhum
+                            aluno nesta turma ainda.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -68,25 +103,22 @@
         </div>
     </div>
 
-    <!-- Histórico de Provas -->
     <div class="card glass-morph">
-        <h3>📝 Últimas Avaliações</h3>
+        <h3>📝 Avaliações da Turma</h3>
         <div class="table-container">
             <table>
                 <thead>
                     <tr>
                         <th>Prova</th>
-                        <th>Média</th>
-                        <th>Data</th>
+                        <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in provas %}
                     <tr>
-                        <td><a href="{{ url_for('ver_resultados', prova_id=p.id) }}" style="color: white;">{{ p.nome
-                                }}</a></td>
-                        <td><span style="font-weight: bold; color: var(--accent);">7.2</span></td>
-                        <td>{{ p.data_criacao[:10] }}</td>
+                        <td><a href="{{ url_for('ver_resultados', prova_id=p.id) }}"
+                                style="color: white; font-weight: bold;">{{ p.nome }}</a></td>
+                        <td><span class="bncc-tag">{{ p.status }}</span></td>
                     </tr>
                     {% endfor %}
                 </tbody>

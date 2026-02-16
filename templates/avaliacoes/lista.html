@@ -5,7 +5,10 @@
 {% block content %}
 <div class="header-action">
     <h1>📋 Gestão de Provas</h1>
-    <a href="{{ url_for('criar_prova') }}" class="btn btn-primary">+ Criar Nova Prova</a>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('listar_turmas') }}" class="btn glass">👥 Minhas Turmas</a>
+        <a href="{{ url_for('criar_prova') }}" class="btn btn-primary">+ Criar Nova Prova</a>
+    </div>
 </div>
 
 <div class="table-container glass-morph" style="margin-top: 2rem;">

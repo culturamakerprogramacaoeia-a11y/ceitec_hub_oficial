@@ -322,18 +322,81 @@ def ver_resultados(prova_id):
 @login_required
 @professor_required
 def listar_turmas():
-    turmas = db.avaliacoes.get_turmas_professor(session['user_id'])
+    turmas = db.avaliacoes.get_turmas_completas(session['user_id'])
+    # Se não houver cadastradas, tentar as legadas (das provas)
+    if not turmas:
+        legadas = db.avaliacoes.get_turmas_professor(session['user_id'])
+        turmas = [{'nome': t, 'total_alunos': 0, 'serie': 'Manual'} for t in legadas]
     return render_template('avaliacoes/turmas.html', turmas=turmas)
+
+@app.route('/dashboard/turma/add', methods=['POST'])
+@login_required
+@professor_required
+def cadastrar_turma():
+    nome = request.form.get('nome')
+    serie = request.form.get('serie')
+    if nome:
+        db.avaliacoes.cadastrar_turma(nome, session['user_id'], serie)
+        flash(f'Turma {nome} criada com sucesso!', 'success')
+    return redirect(url_for('listar_turmas'))
 
 @app.route('/dashboard/turma/<string:turma_nome>')
 @login_required
 @professor_required
 def ver_turma(turma_nome):
     alunos = db.avaliacoes.get_alunos_turma(session['user_id'], turma_nome)
-    # Pegar médias das últimas provas dessa turma
     provas = db.avaliacoes.listar_provas(professor_id=session['user_id'], turma=turma_nome)
     return render_template('avaliacoes/detalhes_turma.html', 
                           turma=turma_nome, alunos=alunos, provas=provas)
+
+@app.route('/dashboard/turma/excluir/<int:turma_id>')
+@login_required
+@professor_required
+def excluir_turma(turma_id):
+    db.avaliacoes.excluir_turma(turma_id, session['user_id'])
+    flash('Turma removida com sucesso!', 'success')
+    return redirect(url_for('listar_turmas'))
+@login_required
+@professor_required
+def cadastrar_aluno():
+    nome = request.form.get('nome')
+    turma_nome = request.form.get('turma_nome')
+    
+    # Buscar ID da turma
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM turmas_cadastradas WHERE nome = ? AND professor_id = ?', (turma_nome, session['user_id']))
+    turma = cursor.fetchone()
+    turma_id = turma['id'] if turma else db.avaliacoes.cadastrar_turma(turma_nome, session['user_id'])
+    
+    if nome:
+        db.avaliacoes.cadastrar_aluno(nome, turma_id, session['user_id'])
+        flash(f'Aluno {nome} adicionado!', 'success')
+    return redirect(url_for('ver_turma', turma_nome=turma_nome))
+
+@app.route('/dashboard/alunos/importar', methods=['POST'])
+@login_required
+@professor_required
+def importar_alunos():
+    turma_nome = request.form.get('turma_nome')
+    lista = request.form.get('alunos_lista')
+    
+    conn = db.get_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT id FROM turmas_cadastradas WHERE nome = ? AND professor_id = ?', (turma_nome, session['user_id']))
+    turma = cursor.fetchone()
+    turma_id = turma['id'] if turma else db.avaliacoes.cadastrar_turma(turma_nome, session['user_id'])
+    
+    count = 0
+    if lista:
+        for nome in lista.split('\n'):
+            nome = nome.strip()
+            if nome:
+                db.avaliacoes.cadastrar_aluno(nome, turma_id, session['user_id'])
+                count += 1
+    
+    flash(f'{count} alunos importados para {turma_nome}!', 'success')
+    return redirect(url_for('ver_turma', turma_nome=turma_nome))
 
 # ==================== MÓDULOS LEGADOS (MANTIDOS) ====================
 
