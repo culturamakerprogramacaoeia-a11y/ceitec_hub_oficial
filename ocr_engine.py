@@ -8,6 +8,7 @@ import cv2
 import numpy as np
 import pytesseract
 import re
+import os
 from typing import Dict
 
 class OCREngine:

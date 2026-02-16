@@ -95,6 +95,18 @@
     // Dados de edição (se houver)
     const provaEditData = {{ prova| tojson | safe if prova else 'null' }};
 
+    if (provaEditData) {
+        // Ajustar a quantidade de questões no select para o valor da prova
+        const qSelect = document.getElementById('num_q_select');
+        if (qSelect) {
+            qSelect.value = provaEditData.num_questoes;
+        }
+        // Se a prova tiver texto nas questões, mudar para modo completo
+        if (provaEditData.questoes && provaEditData.questoes.some(q => q.texto)) {
+            modoSelect.value = 'completa';
+        }
+    }
+
     function generateRows() {
         container.innerHTML = '';
         const n = parseInt(selectQ.value);

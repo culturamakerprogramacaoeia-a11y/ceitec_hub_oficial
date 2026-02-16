@@ -142,3 +142,54 @@ class PDFGenerator:
 
         doc.build(elements)
         return filename
+
+    def gerar_gabarito_professor(self, prova_id, nome_prova, turma, questoes, gabarito, professor=""):
+        filename = f"prova_gabarito_{prova_id}.pdf"
+        filepath = os.path.join(self.output_dir, filename)
+        
+        doc = SimpleDocTemplate(filepath, pagesize=A4, topMargin=15*mm, leftMargin=20*mm, rightMargin=20*mm)
+        elements = []
+
+        # Cabeçalho do Gabarito
+        header_table_data = [
+            [Paragraph(f"<b>GABARITO OFICIAL: {nome_prova.upper()}</b>", self.styles['Heading2']), ""],
+            [f"Professor(a): {professor}", f"Turma: {turma}"]
+        ]
+        
+        t_header = Table(header_table_data, colWidths=[120*mm, 50*mm])
+        t_header.setStyle(TableStyle([
+            ('GRID', (0,0), (-1,-1), 0.5, colors.grey),
+            ('SPAN', (0,0), (1,0)),
+            ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
+        ]))
+        elements.append(t_header)
+        elements.append(Spacer(1, 10*mm))
+        
+        qst_style = ParagraphStyle('QStyle', parent=self.styles['Normal'], fontSize=11, leading=14)
+        
+        for q in questoes:
+            num = str(q['numero'])
+            resp_correta = gabarito.get(num, "")
+            
+            p_text = f"<b>{num}.</b> {q.get('texto', '...')}"
+            elements.append(Paragraph(p_text, qst_style))
+            
+            alts = q.get('alternativas', [])
+            if isinstance(alts, str):
+                import json
+                try: alts = json.loads(alts)
+                except: alts = []
+            
+            labels = ["A", "B", "C", "D", "E"]
+            for i, alt_text in enumerate(alts):
+                if i < len(labels):
+                    marca = ""
+                    if labels[i] == resp_correta:
+                        marca = " <b><font color='green'>[RESPOSTA CORRETA]</font></b>"
+                    
+                    elements.append(Paragraph(f"&nbsp;&nbsp;&nbsp;&nbsp;({labels[i]}) {alt_text}{marca}", self.styles['Normal']))
+            
+            elements.append(Spacer(1, 5*mm))
+
+        doc.build(elements)
+        return filename

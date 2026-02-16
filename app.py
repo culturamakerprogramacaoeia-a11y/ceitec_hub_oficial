@@ -159,6 +159,8 @@ def criar_prova(prova_id=None):
         # Gerar PDFs
         if modo == 'completa':
             pdf.gerar_caderno_questoes(target_id, nome, turma, questoes_para_pdf, professor=session['user_name'])
+            # NOVO: Gerar gabarito resolvido para o professor
+            pdf.gerar_gabarito_professor(target_id, nome, turma, questoes_para_pdf, gabarito, professor=session['user_name'])
         
         pdf.gerar_cartao(target_id, nome, turma, num_q, professor=session['user_name'])
         

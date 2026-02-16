@@ -35,6 +35,10 @@
                         target="_blank">📝 Prova</a>
                     <a href="{{ url_for('static', filename='uploads/provas/cartao_prova_' ~ prova.id ~ '.pdf') }}"
                         class="btn glass" style="padding: 5px 12px; font-size: 0.8rem;" target="_blank">📄 Cartão</a>
+                    <a href="{{ url_for('static', filename='uploads/provas/prova_gabarito_' ~ prova.id ~ '.pdf') }}"
+                        class="btn glass"
+                        style="padding: 5px 12px; font-size: 0.8rem; border-color: #10b981; color: #10b981;"
+                        target="_blank">⚖️ Gabarito</a>
 
                     <a href="{{ url_for('criar_prova', prova_id=prova.id) }}" class="btn glass"
                         style="padding: 5px 12px; font-size: 0.8rem; border-color: var(--warning); color: var(--warning);">✏️
