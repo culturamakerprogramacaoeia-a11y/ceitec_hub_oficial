@@ -625,3 +625,53 @@ class AvaliacaoModels:
         stats['habilidades_turma'] = [dict(r) for r in cursor.fetchall()]
         conn.close()
         return stats
+
+    def get_analise_questoes(self, prova_id):
+        """Retorna estatísticas de acertos/erros por questão"""
+        prova = self.get_prova(prova_id)
+        gabarito = prova['gabarito']
+        resultados = self.get_resultados_prova(prova_id)
+        
+        analise = {}
+        for num in gabarito:
+            analise[num] = {'acertos': 0, 'erros': 0, 'total': 0, 'distribuicao': {'A':0, 'B':0, 'C':0, 'D':0, 'E':0}}
+
+        for res in resultados:
+            resp_aluno = json.loads(res['respostas_json']) if res['respostas_json'] else {}
+            for num, alt in resp_aluno.items():
+                if num in analise:
+                    analise[num]['total'] += 1
+                    if alt:
+                        analise[num]['distribuicao'][alt.upper()] = analise[num]['distribuicao'].get(alt.upper(), 0) + 1
+                    
+                    if alt and alt.upper() == gabarito[num].upper():
+                        analise[num]['acertos'] += 1
+                    else:
+                        analise[num]['erros'] += 1
+        
+        return analise
+
+    # ==================== GESTÃO DE TURMAS E ALUNOS ====================
+
+    def get_turmas_professor(self, professor_id):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT DISTINCT turma FROM provas WHERE professor_id = ?', (professor_id,))
+        turmas = [row['turma'] for row in cursor.fetchall()]
+        conn.close()
+        return turmas
+
+    def get_alunos_turma(self, professor_id, turma):
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        # Aqui buscamos alunos que já fizeram alguma prova dessa turma ou estão cadastrados
+        cursor.execute('''
+            SELECT DISTINCT nome_ocr as nome, 'Desconhecido' as serie
+            FROM respostas_alunos 
+            WHERE prova_id IN (SELECT id FROM provas WHERE professor_id = ? AND turma = ?)
+            UNION
+            SELECT nome, serie FROM usuarios WHERE escola IN (SELECT escola FROM usuarios WHERE id = ?) AND tipo = 'aluno'
+        ''', (professor_id, turma, professor_id))
+        alunos = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return alunos

@@ -40,6 +40,24 @@
     </div>
 </div>
 
+<div class="card glass-morph" style="margin-top: 2rem;">
+    <h3>🎯 Mapa de Calor: Desempenho por Questão</h3>
+    <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">Identifique as questões com maior
+        índice de erros para intervenção pedagógica.</p>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); gap: 10px;">
+        {% for num, dados in analise_questoes.items() %}
+        {% set perc = (dados.acertos / dados.total * 100) if dados.total > 0 else 0 %}
+        <div class="card" style="padding: 10px; text-align: center; border-radius: 8px; 
+            background: {% if perc >= 80 %}rgba(16, 185, 129, 0.2){% elif perc >= 50 %}rgba(245, 158, 11, 0.2){% else %}rgba(239, 68, 68, 0.2){% endif %};
+            border: 1px solid {% if perc >= 80 %}#10b981{% elif perc >= 50 %}#f59e0b{% else %}#ef4444{% endif %};">
+            <div style="font-weight: bold; font-size: 1.1rem;">Q{{ num }}</div>
+            <div style="font-size: 0.7rem; margin-top: 4px;">{{ perc|round|int }}%</div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
 <div class="table-container glass-morph" style="margin-top: 2rem;">
     <h3>👥 Detalhamento por Aluno</h3>
     <table>
@@ -58,21 +76,25 @@
                 <td><b>{{ res.aluno_nome or res.nome_ocr or 'Não identificado' }}</b></td>
                 <td>{{ res.acertos }}/{{ prova.num_questoes }}</td>
                 <td><span class="btn glass"
-                        style="font-weight: bold; color: {% if res.nota_final >= 7 %}var(--success){% elif res.nota_final >= 5 %}var(--warning){% else %}var(--danger){% endif %};">
+                        style="font-weight: bold; color: {% if res.nota_final >= 7 %}#10b981{% elif res.nota_final >= 5 %}#f59e0b{% else %}#ef4444{% endif %};">
                         {{ res.nota_final }}
                     </span></td>
                 <td>
                     {% if res.nota_final >= 7 %}
-                    <span class="bncc-tag"
-                        style="background: rgba(16, 185, 129, 0.1); color: var(--success);">APROVADO</span>
+                    <span class="bncc-tag" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">APROVADO</span>
                     {% else %}
                     <span class="bncc-tag"
-                        style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">RECUPERAÇÃO</span>
+                        style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">RECUPERAÇÃO</span>
                     {% endif %}
                 </td>
                 <td>
+                    {% if res.imagem_path and res.imagem_path != 'manual_entry.png' and res.imagem_path !=
+                    'online_submission.png' %}
                     <a href="{{ url_for('static', filename='uploads/correcoes/' ~ res.imagem_path) }}" target="_blank"
                         class="btn glass" style="font-size: 0.8rem;">Ver Cartão</a>
+                    {% else %}
+                    <span class="bncc-tag" style="font-size: 0.7rem;">Entrada Digital</span>
+                    {% endif %}
                 </td>
             </tr>
             {% endfor %}
@@ -96,13 +118,13 @@
         borderColor: '#6366f1',
         borderWidth: 2,
         borderRadius: 8
-        }]
-    },
+            }]
+        },
         options: {
         scales: { y: { beginAtZero: true, max: 100 } },
         plugins: { legend: { display: false } }
     }
-});
+    });
 
     // Gráfico de Distribuição
     const distCtx = document.getElementById('distChart').getContext('2d');
@@ -114,11 +136,11 @@
             data: [{% for d in stats.distribuicao %}{{ d.quantidade }}, {% endfor %}],
         backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
         borderWidth: 0
-        }]
-    },
+            }]
+        },
         options: {
         plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
     }
-});
+    });
 </script>
 {% endblock %}

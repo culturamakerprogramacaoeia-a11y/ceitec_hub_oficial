@@ -313,7 +313,27 @@ def ver_resultados(prova_id):
     prova = db.avaliacoes.get_prova(prova_id)
     resultados = db.avaliacoes.get_resultados_prova(prova_id)
     stats = db.avaliacoes.get_estatisticas_prova(prova_id)
-    return render_template('resultados/dashboard.html', prova=prova, resultados=resultados, stats=stats)
+    analise_questoes = db.avaliacoes.get_analise_questoes(prova_id)
+    return render_template('resultados/dashboard.html', 
+                          prova=prova, resultados=resultados, 
+                          stats=stats, analise_questoes=analise_questoes)
+
+@app.route('/dashboard/turmas')
+@login_required
+@professor_required
+def listar_turmas():
+    turmas = db.avaliacoes.get_turmas_professor(session['user_id'])
+    return render_template('avaliacoes/turmas.html', turmas=turmas)
+
+@app.route('/dashboard/turma/<string:turma_nome>')
+@login_required
+@professor_required
+def ver_turma(turma_nome):
+    alunos = db.avaliacoes.get_alunos_turma(session['user_id'], turma_nome)
+    # Pegar médias das últimas provas dessa turma
+    provas = db.avaliacoes.listar_provas(professor_id=session['user_id'], turma=turma_nome)
+    return render_template('avaliacoes/detalhes_turma.html', 
+                          turma=turma_nome, alunos=alunos, provas=provas)
 
 # ==================== MÓDULOS LEGADOS (MANTIDOS) ====================
 

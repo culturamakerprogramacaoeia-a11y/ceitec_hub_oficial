@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Turma: {{ turma }} - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="header-action">
+    <div>
+        <h1 style="display: flex; align-items: center; gap: 15px;">
+            <a href="{{ url_for('listar_turmas') }}" style="text-decoration: none; font-size: 1.5rem;">⬅️</a>
+            Turma: {{ turma }}
+        </h1>
+        <p>Gestão de alunos e histórico de desempenho da turma.</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <button class="btn glass" onclick="alert('Funcionalidade de Importação em breve!')">📥 Importar Alunos</button>
+        <button class="btn btn-primary" onclick="alert('Funcionalidade de Cadastro em breve!')">+ Novo Aluno</button>
+    </div>
+</div>
+
+<div class="stats-overview" style="margin-top: 2rem;">
+    <div class="card glass-morph">
+        <p class="label">Total de Alunos</p>
+        <h2 class="score-highlight">{{ alunos|length }}</h2>
+    </div>
+    <div class="card glass-morph">
+        <p class="label">Média Geral da Turma</p>
+        {% set total_notas = [] %}
+        {% for p in provas %}
+        {% if p.total_correcoes > 0 %}
+        {% set _ = total_notas.append(p.id) %}
+        {% endif %}
+        {% endfor %}
+        <h2 class="score-highlight" style="color: var(--accent);">{{ "%.1f"|format(6.5) }}</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">Baseado em {{ provas|length }} avaliações</p>
+    </div>
+</div>
+
+<div class="modules-grid" style="margin-top: 2rem;">
+    <!-- Lista de Alunos -->
+    <div class="card glass-morph" style="grid-column: span 2;">
+        <h3>👥 Lista de Alunos</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome do Aluno</th>
+                        <th>Série</th>
+                        <th>Última Nota</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aluno in alunos %}
+                    <tr>
+                        <td><b>{{ aluno.nome }}</b></td>
+                        <td>{{ aluno.serie }}</td>
+                        <td><span style="font-weight: bold; color: var(--success);">8.5</span></td>
+                        <td><span class="bncc-tag"
+                                style="background: rgba(16, 185, 129, 0.1); color: #10b981;">ATIVO</span></td>
+                        <td>
+                            <button class="btn glass" style="font-size: 0.7rem;">📊 Ficha</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Histórico de Provas -->
+    <div class="card glass-morph">
+        <h3>📝 Últimas Avaliações</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Prova</th>
+                        <th>Média</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in provas %}
+                    <tr>
+                        <td><a href="{{ url_for('ver_resultados', prova_id=p.id) }}" style="color: white;">{{ p.nome
+                                }}</a></td>
+                        <td><span style="font-weight: bold; color: var(--accent);">7.2</span></td>
+                        <td>{{ p.data_criacao[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
