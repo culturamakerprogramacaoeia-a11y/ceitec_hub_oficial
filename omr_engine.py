@@ -128,6 +128,9 @@ class OMREngine:
 
     def _ler_marcacoes(self, img: np.ndarray, questoes: Dict) -> Dict:
         respostas = {}
+        # Aumentar threshold base para ser mais rigoroso com fotos de tela
+        base_threshold = 0.55 
+        
         for num_questao, alternativas in questoes.items():
             if num_questao > self.config['total_questoes']:
                 break
@@ -138,15 +141,28 @@ class OMREngine:
                 preenchimento = self._calcular_preenchimento(img, x, y, r)
                 resultados_alts.append(preenchimento)
             
-            # Encontrar a alternativa mais preenchida
-            maior_p = max(resultados_alts) if resultados_alts else 0
-            if maior_p > self.config['threshold']:
+            if not resultados_alts: continue
+
+            # Ordenar preenchimentos para comparar o melhor com o segundo melhor
+            sorted_fills = sorted(resultados_alts, reverse=True)
+            maior_p = sorted_fills[0]
+            segundo_maior_p = sorted_fills[1] if len(sorted_fills) > 1 else 0
+            
+            # LÓGICA DE PRECISÃO:
+            # 1. O preenchimento deve ser maior que o threshold base
+            # 2. A diferença entre a marcada e a "mais vazia" deve ser significativa
+            # 3. se for foto de tela, o ruído é alto, então a diferença relativa importa mais
+            
+            diff_relativa = maior_p - segundo_maior_p
+            
+            if maior_p > base_threshold and diff_relativa > 0.15:
                 idx = resultados_alts.index(maior_p)
                 respostas[num_questao] = {
                     'resposta': self.config['alternativas'][idx],
                     'confianca': round(maior_p, 2)
                 }
             else:
+                # Se não houver diferença clara, considera como não marcada (None)
                 respostas[num_questao] = {'resposta': None, 'confianca': 0}
                 
         return respostas
