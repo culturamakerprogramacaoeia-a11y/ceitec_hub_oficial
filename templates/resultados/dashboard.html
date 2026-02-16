@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados: {{ prova.nome }} - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="header-action">
+    <div>
+        <h1>📊 Resultados: {{ prova.nome }}</h1>
+        <p><span class="bncc-tag">{{ prova.turma }}</span> • {{ stats.total_alunos }} Alunos Corrigidos</p>
+    </div>
+    <div style="display: flex; gap: 10px;">
+        <a href="{{ url_for('correcao_automatica') }}" class="btn glass">+ Corrigir Mais</a>
+        <button onclick="window.print()" class="btn btn-primary">🖨️ Imprimir Relatório</button>
+    </div>
+</div>
+
+<div class="stats-overview" style="margin-top: 2rem;">
+    <div class="card glass-morph">
+        <p class="label">Média da Turma</p>
+        <h2 class="score-highlight">{{ "%.1f"|format(stats.media_turma or 0) }}</h2>
+    </div>
+    <div class="card glass-morph">
+        <p class="label">Maior Nota</p>
+        <h2 class="score-highlight" style="background: var(--grad-primary);">{{ stats.nota_maxima or 0 }}</h2>
+    </div>
+    <div class="card glass-morph">
+        <p class="label">Menor Nota</p>
+        <h2 class="score-highlight" style="color: var(--danger);">{{ stats.nota_minima or 0 }}</h2>
+    </div>
+</div>
+
+<div class="modules-grid" style="margin-top: 2rem;">
+    <div class="card glass-morph" style="grid-column: span 2;">
+        <h3>📈 Desempenho por Habilidade BNCC</h3>
+        <canvas id="habChart" style="max-height: 400px;"></canvas>
+    </div>
+    <div class="card glass-morph">
+        <h3>⚖️ Distribuição de Notas</h3>
+        <canvas id="distChart"></canvas>
+    </div>
+</div>
+
+<div class="table-container glass-morph" style="margin-top: 2rem;">
+    <h3>👥 Detalhamento por Aluno</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Aluno (Extraído via OCR)</th>
+                <th>Acertos</th>
+                <th>Nota Final</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for res in resultados %}
+            <tr>
+                <td><b>{{ res.aluno_nome or res.nome_ocr or 'Não identificado' }}</b></td>
+                <td>{{ res.acertos }}/{{ prova.num_questoes }}</td>
+                <td><span class="btn glass"
+                        style="font-weight: bold; color: {% if res.nota_final >= 7 %}var(--success){% elif res.nota_final >= 5 %}var(--warning){% else %}var(--danger){% endif %};">
+                        {{ res.nota_final }}
+                    </span></td>
+                <td>
+                    {% if res.nota_final >= 7 %}
+                    <span class="bncc-tag"
+                        style="background: rgba(16, 185, 129, 0.1); color: var(--success);">APROVADO</span>
+                    {% else %}
+                    <span class="bncc-tag"
+                        style="background: rgba(239, 68, 68, 0.1); color: var(--danger);">RECUPERAÇÃO</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('static', filename='uploads/correcoes/' ~ res.imagem_path) }}" target="_blank"
+                        class="btn glass" style="font-size: 0.8rem;">Ver Cartão</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Gráfico de Habilidades
+    const habCtx = document.getElementById('habChart').getContext('2d');
+    new Chart(habCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for h in stats.habilidades_turma %}'{{ h.habilidade_bncc }}',{% endfor %}],
+        datasets: [{
+            label: '% Acerto Médio',
+            data: [{% for h in stats.habilidades_turma %}{{ h.media_percentual }}, {% endfor %}],
+        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+        borderColor: '#6366f1',
+        borderWidth: 2,
+        borderRadius: 8
+        }]
+    },
+        options: {
+        scales: { y: { beginAtZero: true, max: 100 } },
+        plugins: { legend: { display: false } }
+    }
+});
+
+    // Gráfico de Distribuição
+    const distCtx = document.getElementById('distChart').getContext('2d');
+    new Chart(distCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for d in stats.distribuicao %}'{{ d.faixa }}',{% endfor %}],
+        datasets: [{
+            data: [{% for d in stats.distribuicao %}{{ d.quantidade }}, {% endfor %}],
+        backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
+        borderWidth: 0
+        }]
+    },
+        options: {
+        plugins: { legend: { position: 'bottom', labels: { color: '#94a3b8' } } }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Correção Automatizada - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="auth-card glass-morph" style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <div class="auth-header">
+        <div class="logo-orb" style="margin: 0 auto 1.5rem; width: 80px; height: 80px; font-size: 3rem;">📸</div>
+        <h1>Corrigir Cartão</h1>
+        <p>Tire uma foto nítida do cartão-resposta ou faça upload do arquivo.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+        <div class="upload-zone card glass" id="drop-zone"
+            style="border: 2px dashed rgba(255,255,255,0.2); height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer;">
+            <p id="file-name">Clique para selecionar ou arraste o arquivo</p>
+            <input type="file" name="imagem" id="file-input" capture="environment" accept="image/*"
+                style="display: none;" required>
+            <small style="color: var(--text-muted); margin-top: 10px;">Suporta: JPG, PNG, WEBP</small>
+        </div>
+
+        <div style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-submit">🚀 Processar
+                Correção</button>
+        </div>
+    </form>
+</div>
+
+<div id="processing-overlay"
+    style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; flex-direction: column; align-items: center; justify-content: center;">
+    <div class="logo-orb rotate">⚙️</div>
+    <h2 style="margin-top: 20px;">Analisando OMR, QR e OCR...</h2>
+    <p>Isso pode levar alguns segundos.</p>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileName = document.getElementById('file-name');
+    const form = document.getElementById('upload-form');
+    const overlay = document.getElementById('processing-overlay');
+
+    dropZone.onclick = () => fileInput.click();
+
+    fileInput.onchange = (e) => {
+        if (e.target.files[0]) {
+            fileName.textContent = `Arquivo selecionado: ${e.target.files[0].name}`;
+            dropZone.style.borderColor = 'var(--success)';
+        }
+    }
+
+    form.onsubmit = () => {
+        overlay.style.display = 'flex';
+    }
+</script>
+
+<style>
+    @keyframes rotate {
+        from {
+            transform: rotate(0deg);
+        }
+
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .rotate {
+        animation: rotate 2s linear infinite;
+    }
+</style>
+{% endblock %}

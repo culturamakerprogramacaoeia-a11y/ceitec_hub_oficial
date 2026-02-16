@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Criar Avaliação - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="auth-card glass-morph" style="max-width: 900px; margin: 0 auto;">
+    <div class="auth-header">
+        <h1>🛠️ Criar Nova Avaliação</h1>
+        <p>Configure o gabarito e gere o cartão-resposta automaticamente.</p>
+    </div>
+
+    <form method="POST" class="auth-form">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="label">Nome da Avaliação</label>
+                <input type="text" name="nome" placeholder="Ex: Simulado Mensal - Setembro" required>
+            </div>
+            <div class="form-group">
+                <label class="label">Turma</label>
+                <input type="text" name="turma" placeholder="Ex: 9º Ano A" required>
+            </div>
+            <div class="form-group">
+                <label class="label">Qtd. Questões</label>
+                <select name="num_questoes" id="num_q_select">
+                    <option value="10">10 Questões</option>
+                    <option value="20">20 Questões</option>
+                    <option value="30" selected>30 Questões</option>
+                </select>
+            </div>
+        </div>
+
+        <h3 style="margin: 2rem 0 1rem; color: var(--accent);">🎯 Gabarito Oficial e BNCC</h3>
+
+        <div id="gabarito-rows" class="gabarito-grid">
+            <!-- Gerado via JS -->
+        </div>
+
+        <div
+            style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; text-align: center;">
+            <button type="submit" class="btn btn-primary btn-lg">🚀 Criar Prova e Gerar PDF</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const container = document.getElementById('gabarito-rows');
+    const select = document.getElementById('num_q_select');
+
+    const bncc_options = [
+        { val: 'EF09CI03', label: 'EF09CI03 (Algoritmos)' },
+        { val: 'EF09CI04', label: 'EF09CI04 (Lógica)' },
+        { val: 'EF09CI05', label: 'EF09CI05 (Automação)' },
+        { val: 'GERAL', label: 'Outras Habilidades' }
+    ];
+
+    function generateRows() {
+        container.innerHTML = '';
+        const n = parseInt(select.value);
+
+        for (let i = 1; i <= n; i++) {
+            const div = document.createElement('div');
+            div.className = 'form-row card glass';
+            div.style.padding = '15px';
+            div.style.marginBottom = '10px';
+            div.style.borderRadius = '12px';
+
+            div.innerHTML = `
+            <div style="width: 40px; font-weight: bold; color: var(--primary);">#${i}</div>
+            <div class="form-group" style="flex: 1;">
+                <select name="q${i}" required>
+                    <option value="">Resposta</option>
+                    <option value="A">A</option><option value="B">B</option>
+                    <option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                </select>
+            </div>
+            <div class="form-group" style="flex: 2;">
+                <select name="h${i}">
+                    ${bncc_options.map(opt => `<option value="${opt.val}">${opt.label}</option>`).join('')}
+                </select>
+            </div>
+        `;
+            container.appendChild(div);
+        }
+    }
+
+    select.addEventListener('change', generateRows);
+    generateRows();
+</script>
+
+<style>
+    .gabarito-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+        .gabarito-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}

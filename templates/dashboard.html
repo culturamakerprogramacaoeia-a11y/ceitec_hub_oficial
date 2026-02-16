@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="dashboard-header card glass-morph"
+    style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem;">
+    <div>
+        <h1 style="font-size: 2.5rem;">Olá, {{ user.nome }}! 👋</h1>
+        <p style="color: var(--text-muted); font-size: 1.1rem;">{{ user.escola }} • <span class="bncc-tag">{{ user.serie
+                }}</span></p>
+    </div>
+    <div style="text-align: right;">
+        <p class="label">Pontuação Acumulada</p>
+        <h2 class="score-highlight">{{ stats.total }}</h2>
+    </div>
+</div>
+
+<div class="modules-grid">
+    <div class="card glass-morph module-card" style="border-top: 4px solid #f59e0b;">
+        <div class="module-icon">🧮</div>
+        <h3>Matemática</h3>
+        <p>Pratique operações e suba no ranking global.</p>
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <span class="bncc-tag">{{ stats.matematica }} pts</span>
+            <a href="{{ url_for('matematica') }}" class="btn btn-primary">Jogar</a>
+        </div>
+    </div>
+
+    <div class="card glass-morph module-card" style="border-top: 4px solid #a855f7;">
+        <div class="module-icon">🤖</div>
+        <h3>Avaliação IA</h3>
+        <p>Melhore sua redação com feedback inteligente.</p>
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <span class="bncc-tag">{{ stats.avaliacao_ia }} pts</span>
+            <a href="{{ url_for('avaliacao_ia') }}" class="btn btn-primary">Escrever</a>
+        </div>
+    </div>
+
+    <div class="card glass-morph module-card" style="border-top: 4px solid #10b981;">
+        <div class="module-icon">🔧</div>
+        <h3>Clube Robótica</h3>
+        <p>Mostre seus projetos para a comunidade.</p>
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <span class="bncc-tag">{{ stats.robotica }} pts</span>
+            <a href="{{ url_for('robotica') }}" class="btn btn-primary">Participar</a>
+        </div>
+    </div>
+
+    {% if user.tipo == 'professor' %}
+    <div class="card glass-morph module-card"
+        style="border-top: 4px solid #06b6d4; background: rgba(6, 182, 212, 0.05);">
+        <div class="module-icon">📋</div>
+        <h3>Gestão de Provas</h3>
+        <p>Crie avaliações e use correção via IA/OMR.</p>
+        <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <span class="bncc-tag">Painel Pro</span>
+            <a href="{{ url_for('listar_provas') }}" class="btn btn-primary"
+                style="background: var(--accent);">Gerenciar</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

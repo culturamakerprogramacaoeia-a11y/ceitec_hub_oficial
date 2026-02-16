@@ -1,0 +1,12 @@
+Flask==3.0.0
+Werkzeug==3.0.1
+gunicorn==21.2.0
+opencv-python
+pyzbar
+pytesseract
+reportlab
+Pillow
+numpy
+pandas
+Chart.js
+python-dotenv

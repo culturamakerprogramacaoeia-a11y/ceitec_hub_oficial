@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="min-height: 90vh; display: flex; align-items: center; justify-content: center; padding: 2rem 0;">
+    <div class="auth-card glass-morph" style="width: 100%; max-width: 500px;">
+        <div class="auth-header">
+            <h1>Criar Nova Conta</h1>
+            <p>Faça parte do ecossistema CEITEC</p>
+        </div>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label class="label">Nome Completo</label>
+                <input type="text" name="nome" required placeholder="Seu nome">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="label">Escola</label>
+                    <input type="text" name="escola" required placeholder="Nome da escola">
+                </div>
+                <div class="form-group">
+                    <label class="label">Série/Turma</label>
+                    <input type="text" name="serie" required placeholder="Ex: 9º Ano">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Tipo de Usuário</label>
+                <select name="tipo" class="glass">
+                    <option value="aluno">Aluno</option>
+                    <option value="professor">Professor</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="label">Crie uma Senha</label>
+                <input type="password" name="senha" required placeholder="••••••••">
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">Finalizar
+                Cadastro</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 2rem; color: var(--text-muted);">
+            Já possui conta? <a href="{{ url_for('login') }}" style="color: var(--primary); font-weight: 600;">Faça
+                Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

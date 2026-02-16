@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# Database
+*.db
+
+# Static/Uploads (Geralmente não versionamos fotos de alunos reais)
+static/uploads/provas/*
+static/uploads/correcoes/*
+!static/uploads/provas/.gitkeep
+!static/uploads/correcoes/.gitkeep
+
+# IDEs
+.vscode/
+.idea/

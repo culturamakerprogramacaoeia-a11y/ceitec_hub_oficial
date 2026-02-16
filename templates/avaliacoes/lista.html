@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Provas - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="header-action">
+    <h1>📋 Gestão de Provas</h1>
+    <a href="{{ url_for('criar_prova') }}" class="btn btn-primary">+ Criar Nova Prova</a>
+</div>
+
+<div class="table-container glass-morph" style="margin-top: 2rem;">
+    <table>
+        <thead>
+            <tr>
+                <th>Nome da Prova</th>
+                <th>Turma</th>
+                <th>Questões</th>
+                <th>Data Criação</th>
+                <th>Correções</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for prova in provas %}
+            <tr>
+                <td><b>{{ prova.nome }}</b></td>
+                <td><span class="bncc-tag">{{ prova.turma }}</span></td>
+                <td>{{ prova.num_questoes }}</td>
+                <td>{{ prova.data_criacao[:10] }}</td>
+                <td>{{ prova.total_correcoes }}</td>
+                <td class="actions">
+                    <a href="{{ url_for('static', filename='uploads/provas/cartao_prova_' ~ prova.id ~ '.pdf') }}"
+                        class="btn glass" style="padding: 5px 12px; font-size: 0.8rem;" target="_blank">📄 Cartão
+                        PDF</a>
+                    <a href="{{ url_for('ver_resultados', prova_id=prova.id) }}" class="btn btn-primary"
+                        style="padding: 5px 12px; font-size: 0.8rem;">📊 Resultados</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                    Nenhuma prova cadastrada ainda.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

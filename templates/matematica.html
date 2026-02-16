@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Matemática - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="card glass-morph" style="max-width: 800px; margin: 0 auto; text-align: center; padding: 3rem;">
+    <div class="module-icon">🧮</div>
+    <h1>Desafio Matemático</h1>
+    <p style="color: var(--text-muted); margin-bottom: 2rem;">Escolha o nível e prove que você é fera nas contas!</p>
+
+    <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 3rem;">
+        <button onclick="startGame('facil')" class="btn glass">Nível Fácil</button>
+        <button onclick="startGame('medio')" class="btn glass">Nível Médio</button>
+        <button onclick="startGame('dificil')" class="btn glass">Nível Hard</button>
+    </div>
+
+    <div id="game-area" style="display: none;">
+        <div class="card glass" style="margin-bottom: 2rem;">
+            <h2 id="question-text" style="font-size: 3.5rem; letter-spacing: 5px;">...</h2>
+        </div>
+
+        <div style="display: flex; gap: 15px; justify-content: center; align-items: center;">
+            <input type="number" id="answer-input" style="width: 150px; font-size: 1.5rem; text-align: center;"
+                placeholder="?">
+            <button onclick="checkAnswer()" class="btn btn-primary btn-lg">Responder</button>
+        </div>
+
+        <div id="feedback" style="margin-top: 20px; font-weight: bold;"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let currentPoints = 0;
+
+    function startGame(nivel) {
+        document.getElementById('game-area').style.display = 'block';
+        fetch('/matematica/questao', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nivel: nivel })
+        })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('question-text').textContent = data.questao;
+                document.getElementById('answer-input').value = '';
+                document.getElementById('feedback').textContent = '';
+                currentPoints = data.pontos;
+            });
+    }
+
+    function checkAnswer() {
+        const ans = parseInt(document.getElementById('answer-input').value);
+        fetch('/matematica/responder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ resposta: ans })
+        })
+            .then(r => r.json())
+            .then(data => {
+                const fb = document.getElementById('feedback');
+                fb.textContent = data.mensagem;
+                fb.style.color = data.correto ? 'var(--success)' : 'var(--danger)';
+                if (data.correto) {
+                    setTimeout(() => startGame(window.currentNivel || 'facil'), 1500);
+                }
+            });
+    }
+</script>
+{% endblock %}

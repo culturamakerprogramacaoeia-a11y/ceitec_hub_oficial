@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="header-action">
+    <h1>📊 Meu Desempenho</h1>
+</div>
+
+<div class="stats-overview" style="margin-top: 2rem;">
+    <div class="card glass-morph">
+        <p class="label">Total de Atividades</p>
+        <h2 class="score-highlight">{{ dados_matematica|length + dados_avaliacao|length }}</h2>
+    </div>
+    <div class="card glass-morph">
+        <p class="label">Posição no Ranking</p>
+        <h2 class="score-highlight" style="color: var(--accent);">{{ posicao_ranking or '-' }}º</h2>
+        <p style="font-size: 0.8rem; color: var(--text-muted);">de {{ total_alunos }} estudantes</p>
+    </div>
+</div>
+
+<div class="modules-grid" style="margin-top: 2rem;">
+    <div class="card glass-morph">
+        <h3>🎯 Histórico de Matemática</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nível</th>
+                        <th>Pontos</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in dados_matematica %}
+                    <tr>
+                        <td>{{ h.nivel|capitalize }}</td>
+                        <td><span style="color: var(--success); font-weight: bold;">+{{ h.pontuacao }}</span></td>
+                        <td>{{ h.data_jogo[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card glass-morph">
+        <h3>📝 Histórico de Avaliação IA</h3>
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Classificação</th>
+                        <th>Pontos</th>
+                        <th>Data</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in dados_avaliacao %}
+                    <tr>
+                        <td>{{ h.nivel_classificacao }}</td>
+                        <td><span style="color: var(--success); font-weight: bold;">+{{ h.pontuacao }}</span></td>
+                        <td>{{ h.data_avaliacao[:10] }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
