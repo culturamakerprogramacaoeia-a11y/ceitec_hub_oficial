@@ -21,6 +21,10 @@ app.secret_key = os.environ.get('SECRET_KEY', 'ceitec-hub-secret-key-2024')
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
 
+# Filtro para converter JSON em lista no HTML
+import json
+app.jinja_env.filters['from_json'] = lambda s: json.loads(s) if s else []
+
 # Garantir pastas
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'provas'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'correcoes'), exist_ok=True)
