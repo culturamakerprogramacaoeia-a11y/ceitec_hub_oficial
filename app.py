@@ -185,35 +185,60 @@ def correcao_automatica():
     if request.method == 'POST':
         file = request.files['imagem']
         if file:
-            filename = secure_filename(f"corr_{datetime.now().timestamp()}_{file.filename}")
-            path = os.path.join(app.config['UPLOAD_FOLDER'], 'correcoes', filename)
-            file.save(path)
-            
-            # 1. Ler QR Code
-            qr_res = qr.ler_qr_code(path)
-            if not qr_res['sucesso']:
-                flash('QR Code não detectado. Tente uma foto mais clara.', 'danger')
+            try:
+                # 0. Salvar e Redimensionar Imediatamente (Ganha Performance e Memória)
+                filename = secure_filename(f"corr_{datetime.now().timestamp()}_{file.filename}")
+                path = os.path.join(app.config['UPLOAD_FOLDER'], 'correcoes', filename)
+                file.save(path)
+                
+                # Otimização extra: Redimensionar o arquivo físico para não pesar no servidor
+                import cv2
+                img_temp = cv2.imread(path)
+                if img_temp is not None:
+                    h, w = img_temp.shape[:2]
+                    if w > 1500:
+                        escala = 1500 / w
+                        img_temp = cv2.resize(img_temp, (1500, int(h * escala)))
+                        cv2.imwrite(path, img_temp)
+
+                # 1. Ler QR Code
+                qr_res = qr.ler_qr_code(path)
+                if not qr_res['sucesso']:
+                    flash('QR Code não detectado. A foto precisa estar bem enquadrada e iluminada.', 'danger')
+                    return redirect(url_for('correcao_automatica'))
+                
+                prova_id = qr_res['dados'].get('prova_id')
+                if not prova_id:
+                    flash('Dados da prova não encontrados no QR Code.', 'danger')
+                    return redirect(url_for('correcao_automatica'))
+                
+                # 2. OCR para Nome (Opcional - Pode ser lento, então usamos try)
+                nome_aluno = "Desconhecido"
+                try:
+                    ocr_res = ocr.extrair_nome(path)
+                    if ocr_res['sucesso']:
+                        nome_aluno = ocr_res.get('nome', 'Desconhecido')
+                except: pass
+                
+                # 3. OMR para Respostas
+                omr_res = omr.processar_imagem(path)
+                
+                # 4. Calcular e Salvar
+                analise = db.avaliacoes.calcular_nota(prova_id, omr_res['respostas'])
+                resp_id = db.avaliacoes.salvar_resposta_aluno(
+                    prova_id, omr_res['respostas'], qr_data=qr_res['raw_data'], 
+                    nome_ocr=nome_aluno, imagem_path=filename
+                )
+                db.avaliacoes.atualizar_nota_resposta(resp_id, analise['nota_final'], analise['acertos'])
+                db.avaliacoes.salvar_desempenho_habilidades(resp_id, analise['desempenho_habilidades'])
+                
+                flash(f'Correção concluída! Aluno(a): {nome_aluno}', 'success')
+                return redirect(url_for('ver_resultados', prova_id=prova_id))
+                
+            except Exception as e:
+                print(f"Erro na correção: {str(e)}")
+                flash('Erro técnico ao processar a imagem. Tente uma foto com menor resolução ou melhor iluminação.', 'danger')
                 return redirect(url_for('correcao_automatica'))
-            
-            prova_id = qr_res['dados'].get('prova_id')
-            
-            # 2. OCR para Nome (Opcional)
-            ocr_res = ocr.extrair_nome(path)
-            nome_aluno = ocr_res.get('nome', 'Desconhecido')
-            
-            # 3. OMR para Respostas
-            omr_res = omr.processar_imagem(path, {'total_questoes': 30}) # Ajustar conforme prova
-            
-            # 4. Calcular e Salvar
-            analise = db.avaliacoes.calcular_nota(prova_id, omr_res['respostas'])
-            resp_id = db.avaliacoes.salvar_resposta_aluno(
-                prova_id, omr_res['respostas'], qr_data=qr_res['raw_data'], 
-                nome_ocr=nome_aluno, imagem_path=filename
-            )
-            db.avaliacoes.atualizar_nota_resposta(resp_id, analise['nota_final'], analise['acertos'])
-            db.avaliacoes.salvar_desempenho_habilidades(resp_id, analise['desempenho_habilidades'])
-            
-            return redirect(url_for('ver_resultados', prova_id=prova_id))
 
     provas = db.avaliacoes.listar_provas(professor_id=session['user_id'])
     return render_template('avaliacoes/correcao.html', provas=provas)
