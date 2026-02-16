@@ -44,9 +44,13 @@
         <h3>{{ turma.nome }}</h3>
         <p>{{ turma.total_alunos }} Alunos Cadastrados</p>
         <div style="margin-top: 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            {% if turma.id %}
             <a href="{{ url_for('excluir_turma', turma_id=turma.id) }}" class="btn glass"
                 style="color: var(--danger); padding: 5px 10px; font-size: 0.8rem;"
                 onclick="return confirm('Tem certeza que deseja excluir esta turma e todos os seus alunos cadastrados?')">🗑️</a>
+            {% else %}
+            <span></span>
+            {% endif %}
             <a href="{{ url_for('ver_turma', turma_nome=turma.nome) }}" class="btn btn-primary">Ver Turma</a>
         </div>
     </div>

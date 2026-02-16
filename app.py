@@ -33,6 +33,7 @@ os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'provas'), exist_ok=True)
 os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'correcoes'), exist_ok=True)
 
 db = Database()
+db.init_db() # Garante que as novas tabelas (turmas/alunos) existam
 omr = OMREngine()
 qr = QREngine()
 ocr = OCREngine()
