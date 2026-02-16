@@ -232,7 +232,9 @@
                 document.getElementsByName(`alt_${i}_C`)[0].value = item.alts[2];
                 document.getElementsByName(`alt_${i}_D`)[0].value = item.alts[3];
 
-                gab.value = "A"; // Por padrão, a primeira é a correta no mock
+                const labels = ["A", "B", "C", "D"];
+                const gabRandom = labels[Math.floor(Math.random() * labels.length)];
+                gab.value = gabRandom;
             }
             btn.disabled = false;
             btn.innerHTML = "✨ Questões Geradas! (Revisão Pronta)";

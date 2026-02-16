@@ -221,7 +221,9 @@ def correcao_automatica():
                 except: pass
                 
                 # 3. OMR para Respostas
-                omr_res = omr.processar_imagem(path)
+                prova_info = db.avaliacoes.get_prova(prova_id)
+                total_q = prova_info['num_questoes'] if prova_info else 30
+                omr_res = omr.processar_imagem(path, {'total_questoes': total_q})
                 
                 # 4. Calcular e Salvar
                 analise = db.avaliacoes.calcular_nota(prova_id, omr_res['respostas'])
