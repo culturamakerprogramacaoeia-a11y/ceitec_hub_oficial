@@ -15,6 +15,12 @@ class QREngine:
         if img is None:
             return {'sucesso': False, 'erro': 'Imagem não encontrada'}
             
+        # OTIMIZAÇÃO: Redimensionar para acelerar leitura
+        h, w = img.shape[:2]
+        if w > 1000:
+            escala = 1000 / w
+            img = cv2.resize(img, (1000, int(h * escala)))
+
         resultados = decode(img)
         if not resultados:
             img_proc = self._preprocessar_para_qr(img)

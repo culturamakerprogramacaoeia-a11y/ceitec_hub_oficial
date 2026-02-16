@@ -30,6 +30,12 @@ class OMREngine:
         if img is None:
             raise ValueError("Não foi possível carregar a imagem")
             
+        # OTIMIZAÇÃO: Redimensionar para acelerar OMR
+        h, w = img.shape[:2]
+        if w > 1200:
+            escala = 1200 / w
+            img = cv2.resize(img, (1200, int(h * escala)))
+
         img_processada = self._preprocessar(img)
         regioes = self._detectar_regioes_marcacao(img_processada)
         respostas = self._ler_marcacoes(img_processada, regioes)
