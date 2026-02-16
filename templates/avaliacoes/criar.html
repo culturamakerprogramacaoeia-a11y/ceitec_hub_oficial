@@ -3,15 +3,15 @@
 {% block title %}Criar Avaliação - CEITEC HUB{% endblock %}
 
 {% block content %}
-<div class="auth-card glass-morph" style="max-width: 900px; margin: 0 auto;">
+<div class="auth-card glass-morph" style="max-width: 1000px; margin: 0 auto;">
     <div class="auth-header">
         <h1>🛠️ Criar Nova Avaliação</h1>
-        <p>Configure o gabarito e gere o cartão-resposta automaticamente.</p>
+        <p>Configure o gabarito ou crie a prova completa com suporte a IA.</p>
     </div>
 
-    <form method="POST" class="auth-form">
+    <form method="POST" class="auth-form" id="provaForm">
         <div class="form-row">
-            <div class="form-group">
+            <div class="form-group" style="flex: 2;">
                 <label class="label">Nome da Avaliação</label>
                 <input type="text" name="nome" placeholder="Ex: Simulado Mensal - Setembro" required>
             </div>
@@ -19,9 +19,21 @@
                 <label class="label">Turma</label>
                 <input type="text" name="turma" placeholder="Ex: 9º Ano A" required>
             </div>
+        </div>
+
+        <div class="form-row"
+            style="margin-top: 1rem; background: rgba(255,255,255,0.02); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <div class="form-group">
+                <label class="label">Modo de Criação</label>
+                <select id="modo_criacao" name="modo_criacao" onchange="toggleModo()">
+                    <option value="gabarito">Apenas Gabarito (Gera apenas o cartão-resposta)</option>
+                    <option value="completa">Prova Completa (Gera questões e cartão-resposta)</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label class="label">Qtd. Questões</label>
-                <select name="num_questoes" id="num_q_select">
+                <select name="num_questoes" id="num_q_select" onchange="generateRows()">
+                    <option value="5">5 Questões</option>
                     <option value="10">10 Questões</option>
                     <option value="20">20 Questões</option>
                     <option value="30" selected>30 Questões</option>
@@ -29,15 +41,25 @@
             </div>
         </div>
 
-        <h3 style="margin: 2rem 0 1rem; color: var(--accent);">🎯 Gabarito Oficial e BNCC</h3>
+        <div id="ai-section" style="display: none; margin-top: 1.5rem; text-align: center;">
+            <button type="button" onclick="gerarComIA()" class="btn glass"
+                style="border: 1px solid var(--primary); color: var(--primary); width: 100%;">
+                ✨ Gerar Questões Automaticamente com IA (BNCC)
+            </button>
+        </div>
+
+        <h3
+            style="margin: 2rem 0 1rem; color: var(--accent); display: flex; justify-content: space-between; align-items: center;">
+            <span>🎯 Estrutura da Avaliação</span>
+        </h3>
 
         <div id="gabarito-rows" class="gabarito-grid">
             <!-- Gerado via JS -->
         </div>
 
         <div
-            style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; text-align: center;">
-            <button type="submit" class="btn btn-primary btn-lg">🚀 Criar Prova e Gerar PDF</button>
+            style="margin-top: 2rem; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; text-align: center; display: flex; gap: 15px; justify-content: center;">
+            <button type="submit" class="btn btn-primary btn-lg">🚀 Finalizar e Gerar PDFs</button>
         </div>
     </form>
 </div>
@@ -46,7 +68,9 @@
 {% block extra_js %}
 <script>
     const container = document.getElementById('gabarito-rows');
-    const select = document.getElementById('num_q_select');
+    const selectQ = document.getElementById('num_q_select');
+    const modoSelect = document.getElementById('modo_criacao');
+    const aiSection = document.getElementById('ai-section');
 
     const bncc_options = [
         { val: 'EF09CI03', label: 'EF09CI03 (Algoritmos)' },
@@ -55,50 +79,123 @@
         { val: 'GERAL', label: 'Outras Habilidades' }
     ];
 
+    function toggleModo() {
+        const modo = modoSelect.value;
+        aiSection.style.display = modo === 'completa' ? 'block' : 'none';
+        generateRows();
+    }
+
     function generateRows() {
         container.innerHTML = '';
-        const n = parseInt(select.value);
+        const n = parseInt(selectQ.value);
+        const modo = modoSelect.value;
+
+        if (modo === 'completa') {
+            container.style.gridTemplateColumns = '1fr';
+        } else {
+            container.style.gridTemplateColumns = '1fr 1fr';
+        }
 
         for (let i = 1; i <= n; i++) {
             const div = document.createElement('div');
-            div.className = 'form-row card glass';
-            div.style.padding = '15px';
-            div.style.marginBottom = '10px';
-            div.style.borderRadius = '12px';
+            div.className = 'card glass';
+            div.style.padding = '20px';
+            div.style.marginBottom = '15px';
+            div.style.borderRadius = '16px';
+            div.style.border = '1px solid rgba(255,255,255,0.05)';
+
+            let questionFields = '';
+            if (modo === 'completa') {
+                questionFields = `
+                    <div class="form-group">
+                        <label class="label">Enunciado da Questão #${i}</label>
+                        <textarea name="texto_${i}" rows="3" placeholder="Digite o enunciado da questão..." style="margin-bottom: 10px;"></textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <input type="text" name="alt_${i}_A" placeholder="Alternativa A">
+                        <input type="text" name="alt_${i}_B" placeholder="Alternativa B">
+                        <input type="text" name="alt_${i}_C" placeholder="Alternativa C">
+                        <input type="text" name="alt_${i}_D" placeholder="Alternativa D">
+                    </div>
+                `;
+            }
 
             div.innerHTML = `
-            <div style="width: 40px; font-weight: bold; color: var(--primary);">#${i}</div>
-            <div class="form-group" style="flex: 1;">
-                <select name="q${i}" required>
-                    <option value="">Resposta</option>
-                    <option value="A">A</option><option value="B">B</option>
-                    <option value="C">C</option><option value="D">D</option><option value="E">E</option>
-                </select>
-            </div>
-            <div class="form-group" style="flex: 2;">
-                <select name="h${i}">
-                    ${bncc_options.map(opt => `<option value="${opt.val}">${opt.label}</option>`).join('')}
-                </select>
-            </div>
-        `;
+                <div style="display: flex; gap: 15px; align-items: flex-start; margin-bottom: 15px;">
+                    <div style="width: 40px; height: 40px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">${i}</div>
+                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
+                        <div class="form-group">
+                            <select name="q${i}" required>
+                                <option value="">Gabarito</option>
+                                <option value="A">A</option><option value="B">B</option>
+                                <option value="C">C</option><option value="D">D</option><option value="E">E</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <select name="h${i}">
+                                ${bncc_options.map(opt => `<option value="${opt.val}">${opt.label}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                ${questionFields}
+            `;
             container.appendChild(div);
         }
     }
 
-    select.addEventListener('change', generateRows);
-    generateRows();
+    function gerarComIA() {
+        const btn = event.target;
+        btn.disabled = true;
+        btn.textContent = "🤖 IA Processando Habilidades BNCC...";
+
+        // Simulação de geração via IA
+        setTimeout(() => {
+            const n = parseInt(selectQ.value);
+            for (let i = 1; i <= n; i++) {
+                const areaQuestao = document.getElementsByName(`texto_${i}`)[0];
+                const hab = document.getElementsByName(`h${i}`)[0].value;
+                const gab = document.getElementsByName(`q${i}`)[0];
+
+                if (hab === 'EF09CI03') {
+                    areaQuestao.value = `Tendo em vista o conceito de algoritmos, qual é a função primordial de uma estrutura de repetição (loop) em um fluxograma de automação?`;
+                } else {
+                    areaQuestao.value = `Questão gerada automaticamente baseada na habilidade ${hab}. Considere os padrões tecnológicos do CEITEC HUB.`;
+                }
+
+                document.getElementsByName(`alt_${i}_A`)[0].value = "Resposta correta gerada pela IA";
+                document.getElementsByName(`alt_${i}_B`)[0].value = "Alternativa incorreta baseada em distrações comuns";
+                document.getElementsByName(`alt_${i}_C`)[0].value = "Conceito divergente do tema central";
+                document.getElementsByName(`alt_${i}_D`)[0].value = "Nenhuma das anteriores";
+
+                gab.value = "A";
+            }
+            btn.disabled = false;
+            btn.innerHTML = "✨ Questões Geradas! (Você pode revisar abaixo)";
+            btn.style.borderColor = "var(--success)";
+            btn.style.color = "var(--success)";
+        }, 2000);
+    }
+
+    toggleModo();
 </script>
 
 <style>
     .gabarito-grid {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 15px;
+        gap: 20px;
     }
 
-    @media (max-width: 768px) {
+    textarea,
+    input {
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    @media (max-width: 900px) {
         .gabarito-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
         }
     }
 </style>

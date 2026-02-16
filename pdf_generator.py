@@ -82,3 +82,39 @@ class PDFGenerator:
 
         doc.build(elements)
         return filename
+
+    def gerar_caderno_questoes(self, prova_id, nome_prova, turma, questoes, professor=""):
+        filename = f"prova_caderno_{prova_id}.pdf"
+        filepath = os.path.join(self.output_dir, filename)
+        
+        doc = SimpleDocTemplate(filepath, pagesize=A4, topMargin=20*mm)
+        elements = []
+
+        # Título da Prova
+        elements.append(Paragraph(f"<b>{nome_prova.upper()}</b>", self.styles['Title']))
+        elements.append(Paragraph(f"Turma: {turma} | Professor: {professor}", self.styles['Normal']))
+        elements.append(Spacer(1, 10*mm))
+        
+        for q in questoes:
+            # Enunciado
+            texto = q.get('texto') or "Questão sem enunciado."
+            p_text = f"<b>Questão {q['numero']}:</b> {texto}"
+            elements.append(Paragraph(p_text, self.styles['Normal']))
+            elements.append(Spacer(1, 3*mm))
+            
+            # Alternativas
+            alts = q.get('alternativas', [])
+            if isinstance(alts, str):
+                import json
+                try: alts = json.loads(alts)
+                except: alts = []
+            
+            labels = ["A", "B", "C", "D", "E"]
+            for i, alt_text in enumerate(alts):
+                if i < len(labels):
+                    elements.append(Paragraph(f"({labels[i]}) {alt_text}", self.styles['Normal']))
+            
+            elements.append(Spacer(1, 8*mm))
+
+        doc.build(elements)
+        return filename

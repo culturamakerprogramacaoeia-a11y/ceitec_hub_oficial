@@ -112,23 +112,43 @@ def criar_prova():
         nome = request.form['nome']
         turma = request.form['turma']
         num_q = int(request.form['num_questoes'])
+        modo = request.form.get('modo_criacao', 'gabarito')
         
         prova_id = db.avaliacoes.criar_prova(nome, turma, session['user_id'], num_questoes=num_q)
         
         # Salvar Questões e Gabarito
         gabarito = {}
+        questoes_para_pdf = []
         for i in range(1, num_q + 1):
             resp = request.form.get(f'q{i}')
             hab = request.form.get(f'h{i}', 'GERAL')
-            db.avaliacoes.adicionar_questao(prova_id, i, resp, habilidade_bncc=hab)
+            
+            # Dados extras para Prova Completa
+            texto = request.form.get(f'texto_{i}')
+            alts = []
+            if modo == 'completa':
+                for letra in ['A', 'B', 'C', 'D']:
+                    alts.append(request.form.get(f'alt_{i}_{letra}', ''))
+            
+            db.avaliacoes.adicionar_questao(
+                prova_id, i, resp, 
+                habilidade_bncc=hab, 
+                texto=texto,
+                alternativas=alts if alts else None
+            )
             gabarito[str(i)] = resp
+            questoes_para_pdf.append({'numero': i, 'texto': texto, 'alternativas': alts})
         
         db.avaliacoes.salvar_gabarito(prova_id, gabarito)
         
-        # Gerar PDF do Cartão
+        # Gerar PDFs
+        if modo == 'completa':
+            pdf.gerar_caderno_questoes(prova_id, nome, turma, questoes_para_pdf, professor=session['user_name'])
+        
         pdf.gerar_cartao(prova_id, nome, turma, num_q, professor=session['user_name'])
         
-        flash('Prova criada e cartão gerado com sucesso!', 'success')
+        msg = 'Prova Completa criada com sucesso!' if modo == 'completa' else 'Gabarito criado e cartão gerado com sucesso!'
+        flash(msg, 'success')
         return redirect(url_for('listar_provas'))
         
     return render_template('avaliacoes/criar.html')

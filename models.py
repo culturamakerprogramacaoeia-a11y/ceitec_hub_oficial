@@ -423,16 +423,16 @@ class AvaliacaoModels:
     
     def adicionar_questao(self, prova_id, numero, resposta_correta, 
                          habilidade_bncc=None, descricao_habilidade=None, 
-                         peso=1.0, texto=None):
+                         peso=1.0, texto=None, alternativas=None):
         conn = self.db.get_connection()
         cursor = conn.cursor()
-        alternativas = json.dumps(["A", "B", "C", "D", "E"])
+        alts_json = json.dumps(alternativas if alternativas else ["A", "B", "C", "D", "E"])
         cursor.execute('''
             INSERT INTO questoes 
             (prova_id, numero, texto, alternativas, resposta_correta, 
              habilidade_bncc, descricao_habilidade, peso)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (prova_id, numero, texto, alternativas, resposta_correta,
+        ''', (prova_id, numero, texto, alts_json, resposta_correta,
               habilidade_bncc, descricao_habilidade, peso))
         conn.commit()
         conn.close()
