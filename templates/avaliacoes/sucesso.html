@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Prova Enviada com Sucesso! - CEITEC HUB{% endblock %}
+
+{% block content %}
+<div class="auth-card glass-morph" style="max-width: 600px; margin: 4rem auto; text-align: center;">
+    <div class="logo-orb"
+        style="margin: 0 auto 2rem; width: 100px; height: 100px; font-size: 4rem; background: var(--success); color: white;">
+        ✔️</div>
+
+    <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">Parabéns, {{ nome }}!</h1>
+    <p style="font-size: 1.2rem; color: var(--text-muted); margin-bottom: 2rem;">
+        Sua avaliação de <b>{{ prova.nome }}</b> foi enviada com sucesso para o professor.
+    </p>
+
+    <div class="card glass" style="padding: 20px; border: 1px solid var(--success); margin-bottom: 3rem;">
+        <h3 style="color: var(--success); margin-bottom: 10px;">📊 Resultado Processado</h3>
+        <p style="font-size: 1.1rem;">Acertos: <b>{{ analise.acertos }}</b> de {{ analise.total_questoes }}</p>
+        <p style="font-size: 1.1rem;">Sua Nota: <b style="font-size: 1.5rem; color: var(--primary);">{{
+                analise.nota_final }}</b></p>
+    </div>
+
+    <p style="color: var(--text-muted);">Você já pode fechar esta aba.</p>
+    <a href="https://ceitec-hub.com" class="btn btn-primary" style="margin-top: 2rem;">Voltar ao Início</a>
+</div>
+
+<!-- Confete de Sucesso! -->
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<script>
+    confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 }
+    });
+</script>
+{% endblock %}

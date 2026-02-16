@@ -55,8 +55,13 @@
                     <a href="{{ url_for('ver_resultados', prova_id=prova.id) }}" class="btn btn-primary"
                         style="padding: 5px 12px; font-size: 0.8rem;">📊 Resultados</a>
 
+                    <button class="btn glass"
+                        onclick="copyLink('{{ url_for('fazer_prova_online', prova_id=prova.id, _external=True) }}')"
+                        style="padding: 5px 12px; font-size: 0.8rem; border-color: #c084fc; color: #c084fc;">🔗 Link
+                        Aluno</button>
+
                     <a href="{{ url_for('correcao_manual', prova_id=prova.id) }}" class="btn glass"
-                        style="padding: 5px 12px; font-size: 0.8rem; border-color: #38bdf8; color: #38bdf8;">📝 Lançar
+                        style="padding: 5px 12px; font-size: 0.8rem; border-color: #38bdf8; color: #38bdf8;">📝
                         Manual</a>
                 </td>
             </tr>
@@ -70,4 +75,16 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    function copyLink(url) {
+        const el = document.createElement('textarea');
+        el.value = url;
+        document.body.appendChild(el);
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        alert("✅ Link da Prova Online copiado!\nAgora é só enviar para os alunos.");
+    }
+</script>
 {% endblock %}

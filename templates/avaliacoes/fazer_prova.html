@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prova.nome }} - Avaliação Online{% endblock %}
+
+{% block content %}
+<div class="auth-card glass-morph" style="max-width: 900px; margin: 0 auto;">
+    <div class="auth-header" style="text-align: center; margin-bottom: 3rem;">
+        <div class="logo-orb" style="margin: 0 auto 1.5rem; width: 70px; height: 70px; font-size: 2.5rem;">✍️</div>
+        <h1>{{ prova.nome }}</h1>
+        <p>Turma: <b>{{ prova.turma }}</b> • Professor: <b>{{ prova.professor_nome }}</b></p>
+    </div>
+
+    <form method="POST" id="provaOnlineForm">
+        <!-- Identificação do Aluno -->
+        <div class="card glass" style="padding: 25px; margin-bottom: 2rem; border-left: 5px solid var(--primary);">
+            <h3 style="margin-bottom: 1.5rem; color: var(--primary);">👤 Identificação do Aluno</h3>
+            <div class="form-row">
+                <div class="form-group" style="flex: 2;">
+                    <label class="label">Nome Completo</label>
+                    <input type="text" name="nome_aluno" placeholder="Digite seu nome completo" required>
+                </div>
+                <div class="form-group">
+                    <label class="label">Número / Chamada</label>
+                    <input type="text" name="chamada" placeholder="Ex: 12">
+                </div>
+            </div>
+        </div>
+
+        <!-- Questões -->
+        <div class="questoes-container">
+            {% for q in prova.questoes %}
+            <div class="card glass" style="padding: 25px; margin-bottom: 1.5rem; border-radius: 20px;">
+                <div style="display: flex; gap: 15px; align-items: flex-start;">
+                    <div
+                        style="width: 35px; height: 35px; background: var(--accent); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; flex-shrink: 0;">
+                        {{ q.numero }}
+                    </div>
+                    <div style="flex: 1;">
+                        <p style="font-size: 1.1rem; margin-bottom: 1.5rem; line-height: 1.6;">{{ q.texto }}</p>
+
+                        <div class="alternativas-grid" style="display: grid; gap: 10px;">
+                            {% set alts = q.alternativas|from_json if q.alternativas else [] %}
+                            {% set labels = ["A", "B", "C", "D"] %}
+                            {% for i in range(alts|length) %}
+                            <label class="alternative-option">
+                                <input type="radio" name="q{{ q.numero }}" value="{{ labels[i] }}" required>
+                                <span class="custom-radio"></span>
+                                <span class="alt-label">{{ labels[i] }})</span>
+                                <span class="alt-text">{{ alts[i] }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div style="margin-top: 3rem; text-align: center;">
+            <button type="submit" class="btn btn-primary btn-lg"
+                style="padding: 15px 60px; font-size: 1.2rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2);">
+                🎉 Finalizar e Enviar Prova
+            </button>
+            <p style="margin-top: 15px; color: var(--text-muted); font-size: 0.9rem;">Certifique-se de que respondeu
+                todas as questões antes de enviar.</p>
+        </div>
+    </form>
+</div>
+
+<style>
+    .alternative-option {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .alternative-option:hover {
+        background: rgba(255, 255, 255, 0.06);
+        border-color: var(--primary);
+    }
+
+    .alternative-option input {
+        display: none;
+    }
+
+    .alternative-option input:checked+.custom-radio {
+        background: var(--primary);
+        box-shadow: 0 0 10px var(--primary);
+    }
+
+    .alternative-option input:checked~.alt-text {
+        color: white;
+        font-weight: 600;
+    }
+
+    .custom-radio {
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--primary);
+        border-radius: 50%;
+        margin-right: 15px;
+        display: inline-block;
+        transition: all 0.2s;
+    }
+
+    .alt-label {
+        color: var(--primary);
+        font-weight: bold;
+        margin-right: 10px;
+    }
+
+    .alt-text {
+        color: var(--text-muted);
+    }
+</style>
+{% endblock %}

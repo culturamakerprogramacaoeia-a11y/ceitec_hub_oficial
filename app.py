@@ -273,6 +273,33 @@ def correcao_manual(prova_id):
 
     return render_template('avaliacoes/manual.html', prova=prova)
 
+@app.route('/prova/fazer/<int:prova_id>', methods=['GET', 'POST'])
+def fazer_prova_online(prova_id):
+    prova = db.avaliacoes.get_prova(prova_id)
+    if not prova:
+        return "Avaliação não encontrada ou encerrada.", 404
+
+    if request.method == 'POST':
+        nome_aluno = request.form.get('nome_aluno')
+        turma_aluno = request.form.get('turma_aluno')
+        
+        respostas = {}
+        for i in range(1, prova['num_questoes'] + 1):
+            respostas[str(i)] = request.form.get(f'q{i}')
+        
+        # Calcular e Salvar Nota (Mesmo motor de IA/OMR)
+        analise = db.avaliacoes.calcular_nota(prova_id, respostas)
+        resp_id = db.avaliacoes.salvar_resposta_aluno(
+            prova_id, respostas, nome_ocr=f"{nome_aluno} (Online)", 
+            imagem_path='online_submission.png'
+        )
+        db.avaliacoes.atualizar_nota_resposta(resp_id, analise['nota_final'], analise['acertos'])
+        db.avaliacoes.salvar_desempenho_habilidades(resp_id, analise['desempenho_habilidades'])
+        
+        return render_template('avaliacoes/sucesso.html', prova=prova, nome=nome_aluno, analise=analise)
+
+    return render_template('avaliacoes/fazer_prova.html', prova=prova)
+
 @app.route('/dashboard/resultados/<int:prova_id>')
 @login_required
 def ver_resultados(prova_id):
