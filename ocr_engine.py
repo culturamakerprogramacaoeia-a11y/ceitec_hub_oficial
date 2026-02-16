@@ -1,6 +1,7 @@
 """
 Motor de OCR (Optical Character Recognition)
 Reconhecimento de texto manuscrito
+tes
 """
 
 import cv2
