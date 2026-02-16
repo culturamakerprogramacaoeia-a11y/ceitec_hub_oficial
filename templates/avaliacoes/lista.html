@@ -28,14 +28,26 @@
                 <td>{{ prova.num_questoes }}</td>
                 <td>{{ prova.data_criacao[:10] }}</td>
                 <td>{{ prova.total_correcoes }}</td>
-                <td class="actions">
+                <td class="actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <a href="{{ url_for('static', filename='uploads/provas/prova_caderno_' ~ prova.id ~ '.pdf') }}"
                         class="btn glass"
                         style="padding: 5px 12px; font-size: 0.8rem; border-color: var(--accent); color: var(--accent);"
-                        target="_blank">📝 Prova PDF</a>
+                        target="_blank">📝 Prova</a>
                     <a href="{{ url_for('static', filename='uploads/provas/cartao_prova_' ~ prova.id ~ '.pdf') }}"
-                        class="btn glass" style="padding: 5px 12px; font-size: 0.8rem;" target="_blank">📄 Cartão
-                        PDF</a>
+                        class="btn glass" style="padding: 5px 12px; font-size: 0.8rem;" target="_blank">📄 Cartão</a>
+
+                    <a href="{{ url_for('criar_prova', prova_id=prova.id) }}" class="btn glass"
+                        style="padding: 5px 12px; font-size: 0.8rem; border-color: var(--warning); color: var(--warning);">✏️
+                        Editar</a>
+
+                    <form action="{{ url_for('excluir_prova', prova_id=prova.id) }}" method="POST"
+                        onsubmit="return confirm('Tem certeza que deseja excluir esta prova e todas as suas correções?')"
+                        style="display:inline;">
+                        <button type="submit" class="btn glass"
+                            style="padding: 5px 12px; font-size: 0.8rem; border-color: var(--danger); color: var(--danger);">🗑️
+                            Excluir</button>
+                    </form>
+
                     <a href="{{ url_for('ver_resultados', prova_id=prova.id) }}" class="btn btn-primary"
                         style="padding: 5px 12px; font-size: 0.8rem;">📊 Resultados</a>
                 </td>

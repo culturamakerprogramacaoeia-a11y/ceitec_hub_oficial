@@ -447,6 +447,23 @@ class AvaliacaoModels:
         ''', (prova_id, gabarito_json))
         conn.commit()
         conn.close()
+
+    def excluir_prova(self, prova_id, professor_id):
+        """Exclui uma prova e todos os seus dados relacionados (ON DELETE CASCADE)"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        # Verificar se a prova pertence ao professor
+        cursor.execute('DELETE FROM provas WHERE id = ? AND professor_id = ?', (prova_id, professor_id))
+        conn.commit()
+        conn.close()
+
+    def limpar_questoes_prova(self, prova_id):
+        """Remove todas as questões de uma prova para permitir re-inserir"""
+        conn = self.db.get_connection()
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM questoes WHERE prova_id = ?', (prova_id,))
+        conn.commit()
+        conn.close()
     
     def get_prova(self, prova_id):
         conn = self.db.get_connection()

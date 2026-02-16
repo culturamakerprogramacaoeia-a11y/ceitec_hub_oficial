@@ -105,16 +105,31 @@ def listar_provas():
     return render_template('avaliacoes/lista.html', provas=provas)
 
 @app.route('/dashboard/avaliacoes/criar', methods=['GET', 'POST'])
+@app.route('/dashboard/avaliacoes/editar/<int:prova_id>', methods=['GET', 'POST'])
 @login_required
 @professor_required
-def criar_prova():
+def criar_prova(prova_id=None):
+    prova_data = None
+    if prova_id:
+        prova_data = db.avaliacoes.get_prova(prova_id)
+        if not prova_data or prova_data['professor_id'] != session['user_id']:
+            flash('Prova não encontrada ou acesso negado.', 'danger')
+            return redirect(url_for('listar_provas'))
+
     if request.method == 'POST':
         nome = request.form['nome']
         turma = request.form['turma']
         num_q = int(request.form['num_questoes'])
         modo = request.form.get('modo_criacao', 'gabarito')
         
-        prova_id = db.avaliacoes.criar_prova(nome, turma, session['user_id'], num_questoes=num_q)
+        if prova_id:
+            # Lógica de Update Simplificada: Remove e Re-adiciona questões
+            # (Poderíamos fazer um UPDATE real, mas isso garante consistência com o formulário dinâmico)
+            db.avaliacoes.limpar_questoes_prova(prova_id)
+            # Atualizar dados básicos da prova (Opcional: criar método update_prova)
+            target_id = prova_id
+        else:
+            target_id = db.avaliacoes.criar_prova(nome, turma, session['user_id'], num_questoes=num_q)
         
         # Salvar Questões e Gabarito
         gabarito = {}
@@ -131,7 +146,7 @@ def criar_prova():
                     alts.append(request.form.get(f'alt_{i}_{letra}', ''))
             
             db.avaliacoes.adicionar_questao(
-                prova_id, i, resp, 
+                target_id, i, resp, 
                 habilidade_bncc=hab, 
                 texto=texto,
                 alternativas=alts if alts else None
@@ -139,19 +154,27 @@ def criar_prova():
             gabarito[str(i)] = resp
             questoes_para_pdf.append({'numero': i, 'texto': texto, 'alternativas': alts})
         
-        db.avaliacoes.salvar_gabarito(prova_id, gabarito)
+        db.avaliacoes.salvar_gabarito(target_id, gabarito)
         
         # Gerar PDFs
         if modo == 'completa':
-            pdf.gerar_caderno_questoes(prova_id, nome, turma, questoes_para_pdf, professor=session['user_name'])
+            pdf.gerar_caderno_questoes(target_id, nome, turma, questoes_para_pdf, professor=session['user_name'])
         
-        pdf.gerar_cartao(prova_id, nome, turma, num_q, professor=session['user_name'])
+        pdf.gerar_cartao(target_id, nome, turma, num_q, professor=session['user_name'])
         
-        msg = 'Prova Completa criada com sucesso!' if modo == 'completa' else 'Gabarito criado e cartão gerado com sucesso!'
+        msg = 'Prova atualizada!' if prova_id else 'Prova criada com sucesso!'
         flash(msg, 'success')
         return redirect(url_for('listar_provas'))
         
-    return render_template('avaliacoes/criar.html')
+    return render_template('avaliacoes/criar.html', prova=prova_data)
+
+@app.route('/dashboard/avaliacoes/excluir/<int:prova_id>', methods=['POST'])
+@login_required
+@professor_required
+def excluir_prova(prova_id):
+    db.avaliacoes.excluir_prova(prova_id, session['user_id'])
+    flash('Avaliação excluída com sucesso.', 'success')
+    return redirect(url_for('listar_provas'))
 
 @app.route('/dashboard/correcao', methods=['GET', 'POST'])
 @login_required
